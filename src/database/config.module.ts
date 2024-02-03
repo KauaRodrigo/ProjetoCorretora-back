@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize'
 
@@ -11,13 +13,12 @@ import { SequelizeModule } from '@nestjs/sequelize'
                     rejectUnauthorized: false
                 }
             },
-            host: 'frcorretora.c9ayy8oy4any.us-east-1.rds.amazonaws.com',
-            port: 5432,
-            username: 'postgres',
-            password: 't6DzmgjJZBjARvYWDH7F',
-            database: 'postgres',
-            autoLoadModels: true,
-            synchronize: true
+            host: process.env.DB_HOST,
+            port: +process.env.DB_PORT,
+            username: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE,
+            autoLoadModels: true
         })
     ],
 })
