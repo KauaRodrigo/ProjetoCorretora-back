@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { TipoSinistro } from "src/enums/tipoSinistros"
 
 @Table({
     schema: 'frcorretora',
@@ -25,4 +26,7 @@ export default class Sinistro extends Model {
 
     @Column
     caminho: string
+
+    @Column(DataType.ENUM(...Object.values(TipoSinistro)))
+    tipo: TipoSinistro
 }
