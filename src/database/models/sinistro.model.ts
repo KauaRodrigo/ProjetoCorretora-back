@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { StatusSinistro } from "src/enums/statusSinistro";
 import { TipoSinistro } from "src/enums/tipoSinistros"
 
 @Table({
@@ -29,4 +30,7 @@ export default class Sinistro extends Model {
 
     @Column(DataType.ENUM(...Object.values(TipoSinistro)))
     tipo: TipoSinistro
+
+    @Column(DataType.ENUM(...Object.values(StatusSinistro)))
+    status: StatusSinistro
 }

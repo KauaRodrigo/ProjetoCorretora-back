@@ -7,13 +7,12 @@ import { AuthGuard } from './auth.guard';
 export class AuthController {
 
     constructor(
-        private authService: AuthService,
-        private jtwService: JwtService
+        private authService: AuthService,        
     ) {}
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    sigIn(@Body() signInDto: { email: string, password: string }) {
+    sigIn(@Body() signInDto: { email: string, password: string }) {        
         return this.authService.signIn(signInDto.email, signInDto.password);
     }
 
