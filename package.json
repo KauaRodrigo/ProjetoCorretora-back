@@ -28,6 +28,7 @@
     "@nestjs/sequelize": "^10.0.0",
     "@types/pg": "^8.11.0",
     "dotenv": "^16.4.1",
+    "firebase": "^10.8.0",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "reflect-metadata": "^0.1.13",
