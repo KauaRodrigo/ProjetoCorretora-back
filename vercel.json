@@ -1,4 +1,7 @@
 {
+    "installCommand": "yarn install",
+    "devCommand": "node dist/main",
+    "buildCommand": "nest build",
     "version": 2,
     "builds": [
         {
