@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import { StatusSinistro } from "src/enums/statusSinistro";
-import { TipoSinistro } from "src/enums/tipoSinistros"
+import { StatusSinistro } from "../../enums/statusSinistro";
+import { TipoSinistro } from "../../enums/tipoSinistros"
 
 @Table({
     schema: 'frcorretora',
