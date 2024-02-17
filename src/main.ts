@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'freitaseroepke.vercel.app'
+    origin: 'freitaseroepke.vercel.app/'
   });
   await app.listen(process.env.PORT, '0.0.0.0');
 }
