@@ -9,6 +9,6 @@ async function bootstrap() {
     credentials: true,
     maxAge: 86400,
   });
-  await app.listen(process.env.PORT, '0.0.0.0');
+  await app.listen(process.env.PORT);
 }
 bootstrap();
