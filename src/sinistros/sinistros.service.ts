@@ -11,6 +11,66 @@ export class SinistrosService {
 
     constructor(@InjectModel(Sinistro) readonly sinistroModel: typeof Sinistro) {}
 
+    async getAccidentsByFilters(filters: any): Promise<{ rows: any[], count: number }> {
+        let {
+            dataFilter = '',
+            searchFilter = '',
+            policyNumberFilter = '',
+            companyFilter = '',
+            statusFilter = ''
+        } = filters
+
+        if(dataFilter) {
+            dataFilter = `AND s.createdAt BETWEEN ${dataFilter.init} AND ${dataFilter.end}`
+        }
+
+        if(policyNumberFilter) {
+            policyNumberFilter = `AND s.codigo = '${policyNumberFilter}'`
+        }
+
+        if(companyFilter) {
+            companyFilter = `AND s.seguradora = '${companyFilter}'`
+        }
+
+        if(statusFilter) {
+            statusFilter = `AND s.status = '${statusFilter}'`
+        }
+
+        const sql = `
+        SELECT s.id,
+               s.codigo,
+               s.seguradora,
+               s.evento,
+               s.nome,
+               s.tipo,
+               s."createdAt",
+               s.status
+          FROM frcorretora.sinistros s 
+         WHERE 1 = 1
+               ${companyFilter}
+               ${dataFilter}
+               ${policyNumberFilter}
+               ${statusFilter}
+      ORDER BY "createdAt" DESC
+        `
+        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
+        const rows = query.map((row: Sinistro) => ({
+            id: row.id,
+            code: row.codigo,
+            type: row.tipo,
+            event: row.evento,
+            company: row.seguradora,
+            clientName: row.nome,
+            status: row.status
+        }))
+
+
+        return {
+            rows,
+            count: rows.length
+        }
+    }
+
     async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, indenizado: number }> {
         const sql = `
         SELECT (SELECT count(*) FROM frcorretora.sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
