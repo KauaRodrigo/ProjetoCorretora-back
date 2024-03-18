@@ -2,8 +2,7 @@ import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { StatusSinistro } from "../../enums/statusSinistro";
 import { TipoSinistro } from "../../enums/tipoSinistros"
 
-@Table({
-    schema: 'frcorretora',
+@Table({    
     tableName: 'sinistros'
 })
 export default class Sinistro extends Model {

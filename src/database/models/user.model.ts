@@ -2,8 +2,7 @@ import { BelongsToMany, Column, ForeignKey, Model, Table } from "sequelize-types
 import Roles from "./role.model";
 import UserRole from "./userRole.model";
 
-@Table({
-    schema: 'frcorretora',
+@Table({    
     tableName: 'users'
 })
 export class User extends Model {

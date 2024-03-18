@@ -5,6 +5,7 @@ import { QueryTypes } from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
+import { subDays } from 'date-fns';
 
 @Injectable()
 export class SinistrosService {
@@ -17,24 +18,23 @@ export class SinistrosService {
             searchFilter = '',
             policyNumberFilter = '',
             companyFilter = '',
-            statusFilter = ''
+            statusFilter = '',
+            typeFilter = '',
+            thirdFilter = ''
         } = filters
 
-        if(dataFilter) {
-            dataFilter = `AND s.createdAt BETWEEN ${dataFilter.init} AND ${dataFilter.end}`
-        }
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND '${dataFilter.end}'` 
+        else dataFilter = ''
 
-        if(policyNumberFilter) {
-            policyNumberFilter = `AND s.codigo = '${policyNumberFilter}'`
-        }
+        if(policyNumberFilter) policyNumberFilter = `AND s.codigo = ${policyNumberFilter}`
 
-        if(companyFilter) {
-            companyFilter = `AND s.seguradora = '${companyFilter}'`
-        }
+        if(companyFilter) companyFilter = `AND s.seguradora = '${companyFilter}'`
 
-        if(statusFilter) {
-            statusFilter = `AND s.status = '${statusFilter}'`
-        }
+        if(statusFilter) statusFilter = `AND s.status = '${statusFilter}'`
+
+        if(typeFilter) typeFilter = `AND s.tipo = '${typeFilter}'`
+
+        if(thirdFilter) thirdFilter = `AND s.terceiro = '${thirdFilter}'`
 
         const sql = `
         SELECT s.id,
@@ -45,13 +45,15 @@ export class SinistrosService {
                s.tipo,
                s."createdAt",
                s.status
-          FROM frcorretora.sinistros s 
+          FROM sinistros s 
          WHERE 1 = 1
                ${companyFilter}
                ${dataFilter}
                ${policyNumberFilter}
                ${statusFilter}
-      ORDER BY "createdAt" DESC
+               ${typeFilter}
+               ${thirdFilter}
+      ORDER BY "createdAt" DESC      
         `
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
         const rows = query.map((row: Sinistro) => ({
@@ -63,7 +65,6 @@ export class SinistrosService {
             clientName: row.nome,
             status: row.status
         }))
-
 
         return {
             rows,
@@ -73,8 +74,8 @@ export class SinistrosService {
 
     async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, indenizado: number }> {
         const sql = `
-        SELECT (SELECT count(*) FROM frcorretora.sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
-               (SELECT count(*) FROM frcorretora.sinistros s WHERE s.status = 'INDENIZADO' AND s.tipo = '${tipo}') indenizado
+        SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
+               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO' AND s.tipo = '${tipo}') indenizado
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
@@ -84,7 +85,21 @@ export class SinistrosService {
         }
     }
 
+    async CreateAccidentRegister(payload: any): Promise<boolean> {
+        const newAccident = await this.sinistroModel.create(payload)
+
+        console.log(newAccident)
+
+        if(!newAccident) {
+            return false
+        }
+
+        return true
+    }
+
     async getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
+        const filter = subDays(new Date(), 7).toISOString()
+
         const sql = `
         SELECT s.id,
                s.codigo,
@@ -94,8 +109,8 @@ export class SinistrosService {
                s.tipo,
                s."createdAt",
                s.status
-          FROM frcorretora.sinistros s 
-         WHERE s.status = 'ABERTO'
+          FROM sinistros s 
+         WHERE s."createdAt" >= '${filter}' 
       ORDER BY "createdAt" DESC
         `
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
@@ -108,7 +123,6 @@ export class SinistrosService {
             clientName: row.nome,
             status: row.status
         }))
-
 
         return {
             rows,

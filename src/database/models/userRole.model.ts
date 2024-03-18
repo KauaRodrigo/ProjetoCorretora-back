@@ -2,8 +2,7 @@ import { BelongsTo, Column, ForeignKey, Model, Table } from "sequelize-typescrip
 import { User } from "./user.model";
 import Roles from "./role.model";
 
-@Table({
-    schema: 'frcorretora',
+@Table({    
     tableName: 'user_role'
 })
 export default class UserRole extends Model {

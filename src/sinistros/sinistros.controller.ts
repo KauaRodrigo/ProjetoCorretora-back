@@ -20,11 +20,14 @@ export class SinistrosController {
         return this.sinistroService.getResumoCard(payload.tipo);
     }
 
+    @Post('create')
+    async createAccidentRegister(@Body() payload: any): Promise<boolean> {
+        return this.sinistroService.CreateAccidentRegister(payload)
+    }
+
     @Get('last-records')
     async getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
         return this.sinistroService.getLastRecords()
     }
-
-
 
 }

@@ -8,13 +8,6 @@ import { SequelizeModule } from '@nestjs/sequelize'
     imports: [
         SequelizeModule.forRoot({
             dialect: 'postgres',
-            dialectOptions: {
-                ssl: {
-                    require: true,
-                    rejectUnauthorized: false
-                }
-            },
-            dialectModule: pg,
             host: process.env.DB_HOST,
             port: +process.env.DB_PORT,
             username: process.env.DB_USERNAME,
