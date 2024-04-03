@@ -86,11 +86,12 @@ export class SinistrosService {
     }
 
     async CreateAccidentRegister(payload: any): Promise<boolean> {
+        payload.tipo = 'VEICULAR';
+        payload.status = 'ABERTO';
+
         const newAccident = await this.sinistroModel.create(payload)
 
-        console.log(newAccident)
-
-        if(!newAccident) {
+        if (!newAccident) {
             return false
         }
 

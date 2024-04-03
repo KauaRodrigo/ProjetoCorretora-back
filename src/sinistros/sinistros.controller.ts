@@ -8,7 +8,7 @@ import LastRecords from 'src/dtos/lastRecords.dto';
 @Controller('sinistros')
 export class SinistrosController {
 
-    constructor(private readonly sinistroService: SinistrosService) {} 
+    constructor(private readonly sinistroService: SinistrosService) {}
     
     @Post('')
     async FindAccidentsByFilters(@Body() filters: any ): Promise<{ rows: any[], count: number }> {
@@ -20,7 +20,7 @@ export class SinistrosController {
         return this.sinistroService.getResumoCard(payload.tipo);
     }
 
-    @Post('create')
+    @Post('criar')
     async createAccidentRegister(@Body() payload: any): Promise<boolean> {
         return this.sinistroService.CreateAccidentRegister(payload)
     }
