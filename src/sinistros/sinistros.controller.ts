@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, Query, UseGuards} from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
@@ -25,9 +25,29 @@ export class SinistrosController {
         return this.sinistroService.CreateAccidentRegister(payload)
     }
 
+    @Post('editar/:id')
+    async editAccidentRegister(@Body() payload: any, @Param('id') id: number): Promise<boolean> {
+        return this.sinistroService.editAccidentRegister(id, payload);
+    }
+
+    @Post('excluir/:id')
+    async excludeAccidentRegister(@Param('id') id: number): Promise<boolean> {
+        return this.sinistroService.excludeAccidentRegister(id);
+    }
+
+    @Post('atualizar/:id')
+    async updateStatusRegister(@Body() payload: { status: string }, @Param('id') id: number): Promise<boolean> {
+        return this.sinistroService.updateStatusRegister(payload, id);
+    }
+
     @Get('last-records')
     async getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
         return this.sinistroService.getLastRecords()
+    }
+
+    @Get('/:id')
+    async getAccidentSingle(@Param('id') id: number): Promise<any> {
+        return this.sinistroService.getAccidentSingle(id);
     }
 
 }

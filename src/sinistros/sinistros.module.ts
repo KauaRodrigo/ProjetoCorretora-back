@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
 import { SinistrosController } from './sinistros.controller';
 import Sinistro from 'src/database/models/sinistro.model';
+import Clientes from 'src/database/models/clientes.model';
 import { SequelizeModule } from '@nestjs/sequelize';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Sinistro])],
+  imports: [SequelizeModule.forFeature([Sinistro, Clientes])],
   controllers: [SinistrosController],
   providers: [SinistrosService],
   exports: [SinistrosService]
