@@ -1,8 +1,20 @@
-import {Body, Controller, Get, Param, Post, Query, UseGuards} from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    UploadedFile,
+    UploadedFiles,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
+import {FileInterceptor} from "@nestjs/platform-express";
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -21,7 +33,9 @@ export class SinistrosController {
     }
 
     @Post('criar')
-    async createAccidentRegister(@Body() payload: any): Promise<boolean> {
+    @UseInterceptors(FileInterceptor('file'))
+    async createAccidentRegister(@Body() payload: any, @UploadedFile() file): Promise<boolean> {
+        console.log(file)
         return this.sinistroService.CreateAccidentRegister(payload)
     }
 

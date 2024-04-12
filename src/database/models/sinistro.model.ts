@@ -3,12 +3,14 @@ import { StatusSinistro } from "../../enums/statusSinistro";
 import { TipoSinistro } from "../../enums/tipoSinistros"
 import Cliente from "./clientes.model";
 import Seguradora from "./seguradora.model";
+import Adress from "./adress.model";
 
 @Table({
     tableName: 'sinistros',
     paranoid: true
 })
 export default class Sinistro extends Model {
+    @AllowNull(false)
     @Column(DataType.BIGINT)
     codigo: number
 
@@ -18,19 +20,20 @@ export default class Sinistro extends Model {
     @Column
     evento: string
 
+    @AllowNull(false)
     @Column
     terceiro: boolean
 
     @Column
     caminho: string
 
+    @AllowNull(false)
     @Column(DataType.ENUM(...Object.values(TipoSinistro)))
     tipo: TipoSinistro
 
     @Column(DataType.ENUM(...Object.values(StatusSinistro)))
     status: StatusSinistro
-
-    @AllowNull
+    
     @Column(DataType.DATE)
     deletedAt: Date
 
@@ -40,15 +43,15 @@ export default class Sinistro extends Model {
     } )
     clienteId: number
 
-    @ForeignKey(() => Seguradora)
+    @ForeignKey(() => Adress)
     @Column({
-        field: 'seguradoraId'
-    } )
-    seguradoraId: number
+        field: 'enderecoId'
+    })
+    enderecoId: number
 
     @BelongsTo(() => Cliente)
     cliente: Cliente
 
-    @BelongsTo(() => Seguradora)
-    seguradora: Seguradora
+    @BelongsTo(() => Adress)
+    endereco: Cliente
 }

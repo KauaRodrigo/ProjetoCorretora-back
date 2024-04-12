@@ -9,9 +9,10 @@ import { SequelizeConfigModule } from './database/sequelize.module';
 import { AuthModule } from './auth/auth.module';
 import { SinistrosController } from './sinistros/sinistros.controller';
 import { SinistrosModule } from './sinistros/sinistros.module';
+import {Multer} from "./Multer/multer.module";
 
 @Module({
-  imports: [DatabaseModule, SequelizeConfigModule,UsersModule, AuthModule, SinistrosModule],
+  imports: [DatabaseModule, SequelizeConfigModule,UsersModule, AuthModule, SinistrosModule, Multer],
   controllers: [AppController, UsersController, SinistrosController],
   providers: [AppService, UsersService],
 })

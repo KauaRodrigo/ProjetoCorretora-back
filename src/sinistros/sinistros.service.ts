@@ -2,18 +2,19 @@ import {Inject, Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import {QueryTypes, Sequelize} from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
-import Clientes from 'src/database/models/clientes.model';
+import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import { subDays } from 'date-fns';
-import {SequelizeConfigModule} from "../database/sequelize.module";
+import Adress from "../database/models/adress.model";
 
 @Injectable()
 export class SinistrosService {
 
     constructor(
         @InjectModel(Sinistro) readonly sinistroModel: typeof Sinistro,
-        @InjectModel(Clientes) readonly clienteModel: typeof Clientes,
+        @InjectModel(Cliente) readonly clienteModel: typeof Cliente,
+        @InjectModel(Adress) readonly enderecoModel: typeof Adress
     ) {}
 
     async getAccidentSingle(id: number) {
@@ -21,7 +22,10 @@ export class SinistrosService {
             const result: any = await this.sinistroModel.findOne({
                 where: {
                     id,
-                }
+                }, include: [
+                    this.clienteModel,
+                    this.enderecoModel
+                ]
             })
 
             return result;
@@ -94,7 +98,6 @@ export class SinistrosService {
             code:       row.codigo,
             type:       row.tipo,
             event:      row.evento,
-            company:    row.seguradora,
             client:     row.cliente,
             status:     row.status
         }))
@@ -216,7 +219,6 @@ export class SinistrosService {
             type: row.tipo,
             event: row.evento,
             cliente: row.cliente,
-            seguradora: row.seguradora,
             status: row.status
         }))
 
