@@ -1,4 +1,4 @@
-import {Inject, Injectable} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import {QueryTypes, Sequelize} from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
@@ -7,6 +7,7 @@ import LastRecords from 'src/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import { subDays } from 'date-fns';
 import Adress from "../database/models/adress.model";
+import Comments from "../database/models/comments.model";
 
 @Injectable()
 export class SinistrosService {
@@ -14,8 +15,10 @@ export class SinistrosService {
     constructor(
         @InjectModel(Sinistro) readonly sinistroModel: typeof Sinistro,
         @InjectModel(Cliente) readonly clienteModel: typeof Cliente,
-        @InjectModel(Adress) readonly enderecoModel: typeof Adress
-    ) {}
+        @InjectModel(Adress) readonly enderecoModel: typeof Adress,
+        @InjectModel(Comments) readonly commentsModel: typeof Comments
+    ) {
+    }
 
     async getAccidentSingle(id: number) {
         try {
@@ -57,7 +60,7 @@ export class SinistrosService {
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND '${dataFilter.end}'` 
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND '${dataFilter.end}'`
         else dataFilter = ''
 
         if(policyNumberFilter) policyNumberFilter = `AND s.codigo = ${policyNumberFilter}`
@@ -92,7 +95,7 @@ export class SinistrosService {
                ${searchFilterValue}
       ORDER BY "createdAt" DESC      
         `
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
+        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
         const rows = query.map((row: Sinistro) => ({
             id:         row.id,
             code:       row.codigo,
@@ -114,7 +117,7 @@ export class SinistrosService {
                (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO/FECHADO' AND s.tipo = '${tipo}') indenizado
         `
 
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
+        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
         return {
             aberto: query[0].aberto,
             indenizado: query[0].indenizado
@@ -132,6 +135,15 @@ export class SinistrosService {
         } catch (error) {
             throw(error);
         }
+    }
+
+    async addComment(content: string, id: number, userId: number): Promise<boolean> {
+        const result = await this.commentsModel.create({
+            conteudo: content,
+            userId: 1,
+            sinistroId: id
+        })
+        return !!result;
     }
 
     async updateStatusRegister(payload: { status: string }, id: number): Promise<boolean> {
@@ -212,7 +224,7 @@ export class SinistrosService {
          WHERE s."createdAt" >= '${filter}' 
       ORDER BY "createdAt" DESC
         `
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT }) 
+        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
         const rows = query.map((row: Sinistro) => ({
             id: row.id,
             code: row.codigo,
@@ -226,7 +238,7 @@ export class SinistrosService {
             rows,
             count: rows.length
         }
-    
+
     }
 
 

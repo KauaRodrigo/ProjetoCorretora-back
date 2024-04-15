@@ -15,13 +15,19 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import {FileInterceptor} from "@nestjs/platform-express";
+import {User} from "../decorators/user.decorator";
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
 export class SinistrosController {
 
     constructor(private readonly sinistroService: SinistrosService) {}
-    
+
+    @Post('/:id/comment')
+    async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {
+        return this.sinistroService.addComment(payload.content, id, user.id);
+    }
+
     @Post('')
     async FindAccidentsByFilters(@Body() filters: any ): Promise<{ rows: any[], count: number }> {
         return this.sinistroService.getAccidentsByFilters(filters)

@@ -10,10 +10,10 @@ export default class Adress extends Model {
     cep: number
 
     @Column
-    Cidade: string
+    cidade: string
 
     @Column
-    Estado: string
+    estado: string
 
     @Column
     rua: string

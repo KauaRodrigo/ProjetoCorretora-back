@@ -7,9 +7,10 @@ import Sinistro from './models/sinistro.model';
 import UserRole from './models/userRole.model';
 import Seguradora from "./models/seguradora.model";
 import Adress from "./models/adress.model";
+import Comments from "./models/comments.model";
 
 @Module({ 
-  imports: [SequelizeModule.forFeature([User, Adress, Clientes, Seguradora, Roles, Sinistro, UserRole])],
+  imports: [SequelizeModule.forFeature([User, Adress, Comments, Clientes, Seguradora, Roles, Sinistro, UserRole])],
   exports: [SequelizeModule],
 })
 export class SequelizeConfigModule {} 
