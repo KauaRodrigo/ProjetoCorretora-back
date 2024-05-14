@@ -16,6 +16,7 @@ import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import {FileInterceptor} from "@nestjs/platform-express";
 import {User} from "../decorators/user.decorator";
+import { diskStorage } from 'multer';    
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -41,8 +42,7 @@ export class SinistrosController {
     @Post('criar')
     @UseInterceptors(FileInterceptor('file'))
     async createAccidentRegister(@Body() payload: any, @UploadedFile() file): Promise<boolean> {
-        console.log(file)
-        return this.sinistroService.CreateAccidentRegister(payload)
+        return this.sinistroService.CreateAccidentRegister(payload, file)
     }
 
     @Post('editar/:id')

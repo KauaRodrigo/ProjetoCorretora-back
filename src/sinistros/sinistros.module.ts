@@ -7,11 +7,12 @@ import Comments from "../database/models/comments.model";
 import Sinistro from "../database/models/sinistro.model";
 import Seguradora from "../database/models/seguradora.model";
 import Cliente from "../database/models/clientes.model";
+import {databaseProvider} from "../database/database.provider";
 
 @Module({
   imports: [SequelizeModule.forFeature([Adress, Comments, Sinistro, Seguradora, Cliente])],
   controllers: [SinistrosController],
-  providers: [SinistrosService],
-  exports: [SinistrosService]
+  providers: [SinistrosService, ...databaseProvider],
+  exports: [SinistrosService, ...databaseProvider]
 })
 export class SinistrosModule {}

@@ -1,8 +1,7 @@
-import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, NotNull, Table} from "sequelize-typescript";
+import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
 import { StatusSinistro } from "../../enums/statusSinistro";
 import { TipoSinistro } from "../../enums/tipoSinistros"
 import Cliente from "./clientes.model";
-import Seguradora from "./seguradora.model";
 import Adress from "./adress.model";
 
 @Table({

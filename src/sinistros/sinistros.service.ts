@@ -1,6 +1,6 @@
-import {Injectable} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import {QueryTypes, Sequelize} from 'sequelize';
+import {QueryTypes, Sequelize, Transaction} from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/dtos/lastRecords.dto';
@@ -8,6 +8,7 @@ import { TipoSinistro } from 'src/enums/tipoSinistros';
 import { subDays } from 'date-fns';
 import Adress from "../database/models/adress.model";
 import Comments from "../database/models/comments.model";
+import Seguradora from "../database/models/seguradora.model";
 
 @Injectable()
 export class SinistrosService {
@@ -16,7 +17,9 @@ export class SinistrosService {
         @InjectModel(Sinistro) readonly sinistroModel: typeof Sinistro,
         @InjectModel(Cliente) readonly clienteModel: typeof Cliente,
         @InjectModel(Adress) readonly enderecoModel: typeof Adress,
-        @InjectModel(Comments) readonly commentsModel: typeof Comments
+        @InjectModel(Comments) readonly commentsModel: typeof Comments,
+        @InjectModel(Seguradora) readonly  seguradoraModel: typeof Seguradora,
+        @Inject('SEQUELIZE') private sequelize: Sequelize
     ) {
     }
 
@@ -52,7 +55,7 @@ export class SinistrosService {
 
         let searchFilterValue = ''
 
-        if(searchFilter.valor != '' && searchFilter.coluna != '') {
+        if(searchFilter.valor !=    '' && searchFilter.coluna != '') {
             if(searchFilter.coluna == "NOME") {
                 searchFilterValue = `AND c.name ILIKE '%${searchFilter.valor}%'`
             } else {
@@ -81,7 +84,7 @@ export class SinistrosService {
                s."createdAt",
                s.status,
                c.name as "nome",
-               seg.nome
+               seg.nome as "segNome"
           FROM sinistros s
           JOIN clientes c ON c.id = s."clienteId"
           JOIN seguradora seg on seg.id = c."seguradoraId"
@@ -96,14 +99,17 @@ export class SinistrosService {
       ORDER BY "createdAt" DESC      
         `
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
-        const rows = query.map((row: Sinistro) => ({
+        const rows = query.map((row) => ({
             id:         row.id,
             code:       row.codigo,
             type:       row.tipo,
             event:      row.evento,
-            client:     row.cliente,
-            status:     row.status
+            client:     row.nome,
+            status:     row.status,
+            company:    row.segNome
         }))
+
+        console.log(rows)
 
         return {
             rows,
@@ -124,23 +130,42 @@ export class SinistrosService {
         }
     }
 
-    async CreateAccidentRegister(payload: any): Promise<boolean> {
+    async CreateAccidentRegister(payload: any, file: any): Promise<boolean> {
+        const transaction: Transaction = await this.sequelize.transaction();
         try {
-            const cliente = await this.clienteModel.create({ name: payload.nome })
+            const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
 
-            payload.cliente = cliente.id;
-            const newRegister = await this.sinistroModel.create(payload);
+            const cliente: Cliente = await this.clienteModel.create({ name: payload.nome, seguradoraId: seguradora.id }, { transaction })
+
+            const endereco: Adress = await this.enderecoModel.create({
+                cep:    payload.cep,
+                rua:    payload.rua,
+                bairro: payload.bairro,
+                cidade: payload.cidade,
+                estado: payload.estado,                
+            }, { transaction })
+
+            payload.enderecoId = endereco.id;
+            payload.clienteId = cliente.id;
+            payload.status = "ABERTO";
+            payload.caminho = 'upload/'+file.originalname;
+ 
+            const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
+
+            await transaction.commit();
 
             return !!newRegister;
         } catch (error) {
+            await transaction.rollback();
+
             throw(error);
         }
     }
 
-    async addComment(content: string, id: number, userId: number): Promise<boolean> {
+    async addComment(content: string, id: number, userId: number = 1): Promise<boolean> {
         const result = await this.commentsModel.create({
             conteudo: content,
-            userId: 1,
+            userId: userId,
             sinistroId: id
         })
         return !!result;
@@ -208,30 +233,33 @@ export class SinistrosService {
         }
     }
 
-    async getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
+    async   getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
         const filter = subDays(new Date(), 7).toISOString()
 
         const sql = `
         SELECT s.id,
                s.codigo,
-               s.seguradora,
+               se.nome,
                s.evento,
-               s.nome,
+               c.name,
                s.tipo,
                s."createdAt",
                s.status
-          FROM sinistros s 
+          FROM sinistros s
+          JOIN clientes c on c.id = s."clienteId"          
+          JOIN seguradora se on se.id = c."seguradoraId"           
          WHERE s."createdAt" >= '${filter}' 
       ORDER BY "createdAt" DESC
         `
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
-        const rows = query.map((row: Sinistro) => ({
+        const rows = query.map((row: any) => ({
             id: row.id,
             code: row.codigo,
             type: row.tipo,
             event: row.evento,
             cliente: row.cliente,
-            status: row.status
+            status: row.status,
+            company: row.nome
         }))
 
         return {

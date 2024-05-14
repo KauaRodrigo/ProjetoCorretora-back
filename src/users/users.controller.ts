@@ -7,7 +7,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
     
     @Post()
-    async crate(@Body() payload: any): Promise<any> {
+    async create(@Body() payload: any): Promise<any> {
         return this.usersService.create(payload);
     }
 
