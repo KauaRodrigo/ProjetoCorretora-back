@@ -5,6 +5,7 @@ import {
     Param,
     Post,
     Query,
+    Res,
     UploadedFile,
     UploadedFiles,
     UseGuards,
@@ -17,6 +18,9 @@ import LastRecords from 'src/dtos/lastRecords.dto';
 import {FileInterceptor} from "@nestjs/platform-express";
 import {User} from "../decorators/user.decorator";
 import { diskStorage } from 'multer';    
+import { Response } from 'express';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Role } from 'src/decorators/role.decorator';
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -25,24 +29,26 @@ export class SinistrosController {
     constructor(private readonly sinistroService: SinistrosService) {}
 
     @Post('/:id/comment')
-    async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {
+    async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {        
         return this.sinistroService.addComment(payload.content, id, user.id);
     }
-
+    
     @Post('')
-    async FindAccidentsByFilters(@Body() filters: any ): Promise<{ rows: any[], count: number }> {
-        return this.sinistroService.getAccidentsByFilters(filters)
+    async FindAccidentsByFilters(@Body() filters: any): Promise<{ rows: any[], count: number }> {
+        const retorno = await this.sinistroService.getAccidentsByFilters(filters);                
+        return retorno;        
     }
 
     @Get('resumo')
     async getResumoCard(@Query() payload: { tipo: TipoSinistro }): Promise<{ aberto: number, indenizado: number }> {
-        return this.sinistroService.getResumoCard(payload.tipo);
+        const retorno = await this.sinistroService.getResumoCard(payload.tipo);        
+                            
+        return retorno;        
     }
-
-    @Post('criar')
-    @UseInterceptors(FileInterceptor('file'))
-    async createAccidentRegister(@Body() payload: any, @UploadedFile() file): Promise<boolean> {
-        return this.sinistroService.CreateAccidentRegister(payload, file)
+    
+    @Post('criar')    
+    async createAccidentRegister(@Body() payload: any): Promise<boolean> {        
+        return this.sinistroService.CreateAccidentRegister(payload)
     }
 
     @Post('editar/:id')
@@ -61,13 +67,15 @@ export class SinistrosController {
     }
 
     @Get('last-records')
-    async getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
-        return this.sinistroService.getLastRecords()
+    async getLastRecords(@Query() payload: any): Promise<{ rows: LastRecords[], count: number}> {
+        const retorno = await this.sinistroService.getLastRecords(payload);        
+        return retorno;        
     }
 
     @Get('/:id')
     async getAccidentSingle(@Param('id') id: number): Promise<any> {
-        return this.sinistroService.getAccidentSingle(id);
+        const retorno = await this.sinistroService.getAccidentSingle(id);    
+        return retorno;
     }
 
 }

@@ -28,13 +28,24 @@ export class SinistrosService {
             const result: any = await this.sinistroModel.findOne({
                 where: {
                     id,
-                }, include: [
-                    this.clienteModel,
-                    this.enderecoModel
-                ]
+                }, include: [{
+                    model: this.clienteModel,
+                    include: [
+                        this.seguradoraModel
+                    ]
+                }]
             })
 
-            return result;
+            return {
+                codigo: result.codigo,
+                placa: result.placa,
+                evento: result.evento,
+                terceiro: result.terceiro,
+                tipo: result.tipo,
+                nome: result.cliente.name,
+                seguradora: result.cliente.seguradora.nome
+            };
+            
         } catch (error) {
             throw(error);
         }
@@ -50,7 +61,9 @@ export class SinistrosService {
             companyFilter = '',
             statusFilter = '',
             typeFilter = '',
-            thirdFilter = ''
+            thirdFilter = '',
+            page = 1,
+            perPage = 5            
         } = filters
 
         let searchFilterValue = ''
@@ -63,7 +76,7 @@ export class SinistrosService {
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND '${dataFilter.end}'`
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
         else dataFilter = ''
 
         if(policyNumberFilter) policyNumberFilter = `AND s.codigo = ${policyNumberFilter}`
@@ -76,29 +89,34 @@ export class SinistrosService {
 
         if(thirdFilter) thirdFilter = `AND s.terceiro = '${thirdFilter}'`
 
-        const sql = `
-        SELECT s.id,
-               s.codigo,                
-               s.evento,               
-               s.tipo,
-               s."createdAt",
-               s.status,
-               c.name as "nome",
-               seg.nome as "segNome"
-          FROM sinistros s
-          JOIN clientes c ON c.id = s."clienteId"
-          JOIN seguradora seg on seg.id = c."seguradoraId"
-         WHERE 1 = 1
-               ${companyFilter}
-               ${dataFilter}
-               ${policyNumberFilter}
-               ${statusFilter}
-               ${typeFilter}
-               ${thirdFilter}
-               ${searchFilterValue}
-      ORDER BY "createdAt" DESC      
+        let sql = `
+            SELECT s.id,
+                s.codigo,                
+                s.evento,               
+                s.tipo,
+                s."createdAt",
+                s.status,
+                c.name as "nome",
+                seg.nome as "segNome"
+            FROM sinistros s
+            JOIN clientes c ON c.id = s."clienteId"
+            JOIN seguradora seg on seg.id = c."seguradoraId"
+           WHERE 1 = 1
+                 ${companyFilter}
+                 ${dataFilter}
+                 ${policyNumberFilter}
+                 ${statusFilter}
+                 ${typeFilter}
+                 ${thirdFilter}
+                 ${searchFilterValue}
+        ORDER BY "createdAt" DESC            
         `
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
+
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT })
+        const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })
+        
+        console.log(count)
+
         const rows = query.map((row) => ({
             id:         row.id,
             code:       row.codigo,
@@ -107,13 +125,11 @@ export class SinistrosService {
             client:     row.nome,
             status:     row.status,
             company:    row.segNome
-        }))
-
-        console.log(rows)
+        }))        
 
         return {
             rows,
-            count: rows.length
+            count: count[0].count
         }
     }
 
@@ -130,7 +146,7 @@ export class SinistrosService {
         }
     }
 
-    async CreateAccidentRegister(payload: any, file: any): Promise<boolean> {
+    async CreateAccidentRegister(payload: any): Promise<boolean> {        
         const transaction: Transaction = await this.sequelize.transaction();
         try {
             const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
@@ -147,8 +163,7 @@ export class SinistrosService {
 
             payload.enderecoId = endereco.id;
             payload.clienteId = cliente.id;
-            payload.status = "ABERTO";
-            payload.caminho = 'upload/'+file.originalname;
+            payload.status = "ABERTO";           
  
             const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
 
@@ -189,7 +204,7 @@ export class SinistrosService {
             }
         });
 
-        return !!result;
+        return !!result;  
     }
 
     async editAccidentRegister(id: number, payload: any): Promise<boolean> {
@@ -233,15 +248,19 @@ export class SinistrosService {
         }
     }
 
-    async   getLastRecords(): Promise<{ rows: LastRecords[], count: number}> {
-        const filter = subDays(new Date(), 7).toISOString()
+    async getLastRecords(payload: any): Promise<{ rows: LastRecords[], count: number}> {
+        let {            
+            page = 1,
+            perPage = 5            
+        } = payload
+        const filter = subDays(new Date(), 3).toISOString()                        
 
         const sql = `
         SELECT s.id,
                s.codigo,
                se.nome,
                s.evento,
-               c.name,
+               c.name as cliente,
                s.tipo,
                s."createdAt",
                s.status
@@ -249,9 +268,11 @@ export class SinistrosService {
           JOIN clientes c on c.id = s."clienteId"          
           JOIN seguradora se on se.id = c."seguradoraId"           
          WHERE s."createdAt" >= '${filter}' 
-      ORDER BY "createdAt" DESC
-        `
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
+         ORDER BY "createdAt" DESC         
+        `   
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT, logging: true })
+        const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })
+
         const rows = query.map((row: any) => ({
             id: row.id,
             code: row.codigo,
@@ -264,7 +285,7 @@ export class SinistrosService {
 
         return {
             rows,
-            count: rows.length
+            count: count[0].count
         }
 
     }
