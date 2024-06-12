@@ -63,7 +63,8 @@ export class SinistrosService {
             typeFilter = '',
             thirdFilter = '',
             page = 1,
-            perPage = 5            
+            perPage = 5,
+            orderBy = 'codigo'            
         } = filters
 
         let searchFilterValue = ''
@@ -90,14 +91,15 @@ export class SinistrosService {
         if(thirdFilter) thirdFilter = `AND s.terceiro = '${thirdFilter}'`
 
         let sql = `
-            SELECT s.id,
+        SELECT row.*
+          FROM (SELECT s.id,
                 s.codigo,                
                 s.evento,               
                 s.tipo,
                 s."createdAt",
                 s.status,
-                c.name as "nome",
-                seg.nome as "segNome"
+                c.name as "cliente",
+                seg.nome as "seguradora"
             FROM sinistros s
             JOIN clientes c ON c.id = s."clienteId"
             JOIN seguradora seg on seg.id = c."seguradoraId"
@@ -108,23 +110,21 @@ export class SinistrosService {
                  ${statusFilter}
                  ${typeFilter}
                  ${thirdFilter}
-                 ${searchFilterValue}
-        ORDER BY "createdAt" DESC            
+                 ${searchFilterValue}) as row
+        ORDER BY row.${orderBy} ASC            
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT })
-        const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })
-        
-        console.log(count)
+        const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
 
         const rows = query.map((row) => ({
             id:         row.id,
             code:       row.codigo,
             type:       row.tipo,
             event:      row.evento,
-            client:     row.nome,
+            client:     row.cliente,
             status:     row.status,
-            company:    row.segNome
+            company:    row.seguradora
         }))        
 
         return {
@@ -136,7 +136,7 @@ export class SinistrosService {
     async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, indenizado: number }> {
         const sql = `
         SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
-               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO/FECHADO' AND s.tipo = '${tipo}') indenizado
+               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO' AND s.tipo = '${tipo}') indenizado
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
