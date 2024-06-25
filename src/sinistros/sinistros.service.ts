@@ -77,41 +77,45 @@ export class SinistrosService {
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND s."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
         else dataFilter = ''
 
-        if(policyNumberFilter) policyNumberFilter = `AND s.codigo = ${policyNumberFilter}`
+        if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`
 
-        if(companyFilter) companyFilter = `AND s.seguradora = '${companyFilter}'`
+        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`
 
-        if(statusFilter) statusFilter = `AND s.status = '${statusFilter}'`
+        if(statusFilter) statusFilter = `AND row.status = '${statusFilter}'`
 
-        if(typeFilter) typeFilter = `AND s.tipo = '${typeFilter}'`
+        if(typeFilter) typeFilter = `AND row.tipo = '${typeFilter}'`
 
-        if(thirdFilter) thirdFilter = `AND s.terceiro = '${thirdFilter}'`
+        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`
 
         let sql = `
         SELECT row.*
           FROM (SELECT s.id,
-                s.codigo,                
-                s.evento,               
-                s.tipo,
-                s."createdAt",
-                s.status,
-                c.name as "cliente",
-                seg.nome as "seguradora"
-            FROM sinistros s
-            JOIN clientes c ON c.id = s."clienteId"
-            JOIN seguradora seg on seg.id = c."seguradoraId"
-           WHERE 1 = 1
-                 ${companyFilter}
-                 ${dataFilter}
-                 ${policyNumberFilter}
-                 ${statusFilter}
-                 ${typeFilter}
-                 ${thirdFilter}
-                 ${searchFilterValue}) as row
-        ORDER BY row.${orderBy} ASC            
+                       s.codigo,                
+                       s.evento,               
+                       s.tipo,
+                       s."createdAt",
+                       s.status,
+                       s.terceiro,
+                       c.name as "cliente",
+                       seg.nome as "seguradora"
+                  FROM sinistros s
+                  JOIN clientes c 
+                    ON c.id = s."clienteId"
+                  JOIN seguradora seg 
+                    on seg.id = c."seguradoraId"
+                ) as row
+            WHERE 1 = 1
+                  ${companyFilter}
+                  ${dataFilter}
+                  ${policyNumberFilter}
+                  ${statusFilter}
+                  ${typeFilter}
+                  ${thirdFilter}
+                  ${searchFilterValue}
+         ORDER BY row.${orderBy} ASC            
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT })
@@ -136,7 +140,7 @@ export class SinistrosService {
     async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, indenizado: number }> {
         const sql = `
         SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
-               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO' AND s.tipo = '${tipo}') indenizado
+               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO/FECHADO' AND s.tipo = '${tipo}') indenizado
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
