@@ -32,6 +32,11 @@ export class SinistrosController {
     async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {        
         return this.sinistroService.addComment(payload.content, id, user.id);
     }
+
+    @Get('/:id/comments')
+    async GetComments(@Param('id') id: number): Promise<{ rows: any}> {
+        return this.sinistroService.getComments(id);
+    }
     
     @Post('')
     async FindAccidentsByFilters(@Body() filters: any): Promise<{ rows: any[], count: number }> {

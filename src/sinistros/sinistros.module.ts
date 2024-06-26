@@ -8,9 +8,10 @@ import Sinistro from "../database/models/sinistro.model";
 import Seguradora from "../database/models/seguradora.model";
 import Cliente from "../database/models/clientes.model";
 import {databaseProvider} from "../database/database.provider";
+import { User } from 'src/database/models/user.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Adress, Comments, Sinistro, Seguradora, Cliente])],
+  imports: [SequelizeModule.forFeature([Adress, Comments, Sinistro, Seguradora, Cliente, User])],
   controllers: [SinistrosController],
   providers: [SinistrosService, ...databaseProvider],
   exports: [SinistrosService, ...databaseProvider]

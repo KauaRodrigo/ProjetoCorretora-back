@@ -5,10 +5,12 @@ import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
-import { subDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import Adress from "../database/models/adress.model";
 import Comments from "../database/models/comments.model";
 import Seguradora from "../database/models/seguradora.model";
+import { User } from 'src/database/models/user.model';
+
 
 @Injectable()
 export class SinistrosService {
@@ -19,6 +21,7 @@ export class SinistrosService {
         @InjectModel(Adress) readonly enderecoModel: typeof Adress,
         @InjectModel(Comments) readonly commentsModel: typeof Comments,
         @InjectModel(Seguradora) readonly  seguradoraModel: typeof Seguradora,
+        @InjectModel(User) readonly userModel: typeof User,
         @Inject('SEQUELIZE') private sequelize: Sequelize
     ) {
     }
@@ -188,6 +191,27 @@ export class SinistrosService {
             sinistroId: id
         })
         return !!result;
+    }
+
+    async getComments(id: number): Promise<{rows: any}> {
+        const result = await this.commentsModel.findAll({
+            include: {
+                model: this.userModel,
+            },
+            where: {
+                sinistroId: id   
+            }
+        })        
+        
+        const rows = result.map((row: any) => ({            
+            usuario: row.user.name,
+            conteudo: row.conteudo,
+            dataComentario: format(row.createdAt, 'dd/MM/yyyy')
+        }))
+
+        return {
+            rows
+        };
     }
 
     async updateStatusRegister(payload: { status: string }, id: number): Promise<boolean> {
