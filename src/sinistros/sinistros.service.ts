@@ -109,6 +109,7 @@ export class SinistrosService {
                     ON c.id = s."clienteId"
                   JOIN seguradora seg 
                     on seg.id = c."seguradoraId"
+              ORDER BY ${orderBy} ASC            
                 ) as row
             WHERE 1 = 1
                   ${companyFilter}
@@ -118,10 +119,9 @@ export class SinistrosService {
                   ${typeFilter}
                   ${thirdFilter}
                   ${searchFilterValue}
-         ORDER BY row.${orderBy} ASC            
         `
 
-        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT })
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage} + 1`, { type: QueryTypes.SELECT })
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
 
         const rows = query.map((row) => ({
@@ -236,12 +236,13 @@ export class SinistrosService {
     }
 
     async editAccidentRegister(id: number, payload: any): Promise<boolean> {
-        try {
+        try {            
             const result = await this.sinistroModel.update(payload, {
+                paranoid: false,
                 where: {
                     id
                 }
-            })
+            })            
 
             return !!result;
         } catch(error) {
@@ -250,15 +251,10 @@ export class SinistrosService {
     }
 
     async excludeAccidentRegister(id: number): Promise<boolean> {
-        await this.sinistroModel.update({
+        const result = await this.sinistroModel.update({
             status: 'INDENIZADO/FECHADO'
         }, { where: { id }})
 
-        const result = await this.sinistroModel.destroy({
-            where: {
-                id
-            }
-        })
         return !!result;
     }
 
