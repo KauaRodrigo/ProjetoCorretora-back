@@ -108,8 +108,7 @@ export class SinistrosService {
                   JOIN clientes c 
                     ON c.id = s."clienteId"
                   JOIN seguradora seg 
-                    on seg.id = c."seguradoraId"
-              ORDER BY ${orderBy} ASC            
+                    on seg.id = c."seguradoraId"                 
                 ) as row
             WHERE 1 = 1
                   ${companyFilter}
@@ -121,7 +120,7 @@ export class SinistrosService {
                   ${searchFilterValue}
         `
 
-        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage} + 1`, { type: QueryTypes.SELECT })
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT, logging: true })
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
 
         const rows = query.map((row) => ({
@@ -206,7 +205,7 @@ export class SinistrosService {
         const rows = result.map((row: any) => ({            
             usuario: row.user.name,
             conteudo: row.conteudo,
-            dataComentario: format(row.createdAt, 'dd/MM/yyyy')
+            dataComentario: format(row.createdAt, 'dd/MM/yyyy hh:mm:ss')
         }))
 
         return {
@@ -294,7 +293,7 @@ export class SinistrosService {
          WHERE s."createdAt" >= '${filter}' 
          ORDER BY "createdAt" DESC         
         `   
-        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT, logging: true })
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT })
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })
 
         const rows = query.map((row: any) => ({
