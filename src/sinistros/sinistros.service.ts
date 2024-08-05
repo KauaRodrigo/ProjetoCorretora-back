@@ -133,7 +133,7 @@ export class SinistrosService {
             client:     row.cliente,
             status:     row.status,
             company:    row.seguradora
-        }))        
+        }))                
 
         return {
             rows,
@@ -141,16 +141,16 @@ export class SinistrosService {
         }
     }
 
-    async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, indenizado: number }> {
+    async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, retorno_reparo: number }> {
         const sql = `
         SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
-               (SELECT count(*) FROM sinistros s WHERE s.status = 'INDENIZADO/FECHADO' AND s.tipo = '${tipo}') indenizado
+               (SELECT count(*) FROM sinistros s WHERE s.status = 'RETORNO_REPARO' AND s.tipo = '${tipo}') retorno_reparo
         `
 
         const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
         return {
             aberto: query[0].aberto,
-            indenizado: query[0].indenizado
+            retorno_reparo: query[0].retorno_reparo
         }
     }
 
@@ -201,13 +201,16 @@ export class SinistrosService {
             },
             where: {
                 sinistroId: id   
-            }
+            },
+            order: [
+                ['createdAt', 'DESC']
+            ]
         })        
         
         const rows = result.map((row: any) => ({            
             usuario: row.user.name,
             conteudo: row.conteudo,
-            dataComentario: format(row.createdAt, 'dd/MM/yyyy hh:mm:ss')
+            dataComentario: format(row.createdAt, 'dd/MM/yyyy hh:mm')
         }))
 
         return {

@@ -45,7 +45,7 @@ export class SinistrosController {
     }
 
     @Get('resumo')
-    async getResumoCard(@Query() payload: { tipo: TipoSinistro }): Promise<{ aberto: number, indenizado: number }> {
+    async getResumoCard(@Query() payload: { tipo: TipoSinistro }): Promise<{ aberto: number, retorno_reparo: number }> {
         const retorno = await this.sinistroService.getResumoCard(payload.tipo);        
                             
         return retorno;        

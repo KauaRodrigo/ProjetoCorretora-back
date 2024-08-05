@@ -7,11 +7,9 @@ CREATE SCHEMA public AUTHORIZATION pg_database_owner;
 CREATE TYPE public."enum_sinistros_status" AS ENUM (
 	'ABERTO',
 	'INDENIZADO',
-	'FECHADO',
-	'ARQUIVADO',
-	'INDENIZADO/FECHADO',
+	'FECHADO',	
 	'REPARO',
-	'RETORNO REPARO',
+	'RETORNO_REPARO',
 	'CANCELADO');
 
 -- DROP TYPE public."enum_sinistros_tipo";
