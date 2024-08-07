@@ -5,22 +5,13 @@ import {
     Param,
     Post,
     Query,
-    Res,
-    UploadedFile,
-    UploadedFiles,
-    UseGuards,
-    UseInterceptors
+    UseGuards    
 } from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
-import {FileInterceptor} from "@nestjs/platform-express";
 import {User} from "../decorators/user.decorator";
-import { diskStorage } from 'multer';    
-import { Response } from 'express';
-import { RolesGuard } from 'src/guards/role.guard';
-import { Role } from 'src/decorators/role.decorator';
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -67,8 +58,8 @@ export class SinistrosController {
     }
 
     @Post('atualizar/:id')
-    async updateStatusRegister(@Body() payload: { status: string }, @Param('id') id: number): Promise<boolean> {
-        return this.sinistroService.updateStatusRegister(payload, id);
+    async updateStatusRegister(@Body() payload: { status: string, descricao: string }, @Param('id') id: number, @User() user: any): Promise<boolean> {
+        return this.sinistroService.updateStatusRegister(payload, id, user.id);
     }
 
     @Get('last-records')

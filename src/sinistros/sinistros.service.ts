@@ -218,11 +218,28 @@ export class SinistrosService {
         };
     }
 
-    async updateStatusRegister(payload: { status: string }, id: number): Promise<boolean> {        
-        const result = await this.sinistroModel.update(
-            { status: payload.status }, 
-            { where: { id }
-        });
+    async updateStatusRegister(payload: { status: string, descricao: string }, id: number, userId: number): Promise<boolean> {        
+        const transaction = await this.sequelize.transaction();        
+        let result;
+
+        try {
+            await this.sinistroModel.update(
+                { status: payload.status }, 
+                { where: { id }
+            });
+
+            console.log(payload)
+
+            await this.commentsModel.create({
+                conteudo: payload.descricao,
+                userId: userId,
+                sinistroId: id
+            })
+
+            transaction.commit();
+        } catch(error) {
+            transaction.rollback();
+        }
 
         return !!result;  
     }
