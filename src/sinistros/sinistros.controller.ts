@@ -28,6 +28,12 @@ export class SinistrosController {
 
     constructor(private readonly sinistroService: SinistrosService) {}
 
+    @Post('')
+    async FindAccidentsByFilters(@Body() filters: any): Promise<{ rows: any[], count: number }> {
+        const retorno = await this.sinistroService.getAccidentsByFilters(filters);                
+        return retorno;        
+    }
+
     @Post('/:id/comment')
     async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {        
         return this.sinistroService.addComment(payload.content, id, user.id);
@@ -38,12 +44,6 @@ export class SinistrosController {
         return this.sinistroService.getComments(id);
     }
     
-    @Post('')
-    async FindAccidentsByFilters(@Body() filters: any): Promise<{ rows: any[], count: number }> {
-        const retorno = await this.sinistroService.getAccidentsByFilters(filters);                
-        return retorno;        
-    }
-
     @Get('resumo')
     async getResumoCard(@Query() payload: { tipo: TipoSinistro }): Promise<{ aberto: number, retorno_reparo: number }> {
         const retorno = await this.sinistroService.getResumoCard(payload.tipo);        

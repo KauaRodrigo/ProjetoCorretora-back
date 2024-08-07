@@ -218,22 +218,10 @@ export class SinistrosService {
         };
     }
 
-    async updateStatusRegister(payload: { status: string }, id: number): Promise<boolean> {
-        const status = [
-            'ABERTO',
-            'REPARO',
-            'INDENIZADO/FECHADO'
-        ]
-
-        const nextStatus = status[status.indexOf(payload.status) + 1]
-
+    async updateStatusRegister(payload: { status: string }, id: number): Promise<boolean> {        
         const result = await this.sinistroModel.update(
-            {
-                status: nextStatus
-            }, {
-            where: {
-                id
-            }
+            { status: payload.status }, 
+            { where: { id }
         });
 
         return !!result;  
@@ -256,7 +244,7 @@ export class SinistrosService {
 
     async excludeAccidentRegister(id: number): Promise<boolean> {
         const result = await this.sinistroModel.update({
-            status: 'FECHADO'
+            status: 'CANCELADO'
         }, { where: { id }})
 
         return !!result;
