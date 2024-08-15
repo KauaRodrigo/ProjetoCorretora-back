@@ -1,8 +1,36 @@
--- DROP SCHEMA public;
+DROP TABLE public.users;
 
-CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+CREATE TABLE public.users (
+	id serial4 NOT NULL,
+	"name" varchar(255) NULL,
+	email varchar(255) NULL,
+	"password" varchar(255) NULL,
+	"createdAt" timestamptz NOT NULL,
+	"updatedAt" timestamptz NOT NULL,
+	CONSTRAINT users_pkey PRIMARY KEY (id)
+);
 
--- DROP TYPE public."enum_sinistros_status";
+DROP TABLE public.roles;
+
+CREATE TABLE public.roles (
+	id serial4 NOT NULL,
+	"name" varchar(255) NULL,
+	"createdAt" timestamptz NOT NULL,
+	"updatedAt" timestamptz NOT NULL,
+	CONSTRAINT roles_pkey PRIMARY KEY (id)
+);
+
+DROP TABLE public.seguradora;
+
+CREATE TABLE public.seguradora (
+	id serial4 NOT NULL,
+	nome varchar(255) NULL,
+	"createdAt" timestamptz NOT NULL,
+	"updatedAt" timestamptz NOT NULL,
+	CONSTRAINT seguradora_pkey PRIMARY KEY (id)
+);
+
+DROP TYPE public."enum_sinistros_status";
 
 CREATE TYPE public."enum_sinistros_status" AS ENUM (
 	'ABERTO',
@@ -12,7 +40,7 @@ CREATE TYPE public."enum_sinistros_status" AS ENUM (
 	'RETORNO_REPARO',
 	'CANCELADO');
 
--- DROP TYPE public."enum_sinistros_tipo";
+DROP TYPE public."enum_sinistros_tipo";
 
 CREATE TYPE public."enum_sinistros_tipo" AS ENUM (
 	'VEICULAR',
@@ -21,73 +49,7 @@ CREATE TYPE public."enum_sinistros_tipo" AS ENUM (
 	'VIAGEM',
 	'VIDA');
 
--- DROP SEQUENCE public.clientes_id_seq;
-
-CREATE SEQUENCE public.clientes_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.comments_id_seq;
-
-CREATE SEQUENCE public.comments_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.endereco_id_seq;
-
-CREATE SEQUENCE public.endereco_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.roles_id_seq;
-
-CREATE SEQUENCE public.roles_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.seguradora_id_seq;
-
-CREATE SEQUENCE public.seguradora_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.sinistros_id_seq;
-
-CREATE SEQUENCE public.sinistros_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;
--- DROP SEQUENCE public.users_id_seq;
-
-CREATE SEQUENCE public.users_id_seq
-	INCREMENT BY 1
-	MINVALUE 1
-	MAXVALUE 2147483647
-	START 1
-	CACHE 1
-	NO CYCLE;-- public.endereco definition
-
--- Drop table
-
--- DROP TABLE public.endereco;
+DROP TABLE public.endereco;
 
 CREATE TABLE public.endereco (
 	id serial4 NOT NULL,
@@ -101,59 +63,7 @@ CREATE TABLE public.endereco (
 	CONSTRAINT endereco_pkey PRIMARY KEY (id)
 );
 
-
--- public.roles definition
-
--- Drop table
-
--- DROP TABLE public.roles;
-
-CREATE TABLE public.roles (
-	id serial4 NOT NULL,
-	"name" varchar(255) NULL,
-	"createdAt" timestamptz NOT NULL,
-	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT roles_pkey PRIMARY KEY (id)
-);
-
-
--- public.seguradora definition
-
--- Drop table
-
--- DROP TABLE public.seguradora;
-
-CREATE TABLE public.seguradora (
-	id serial4 NOT NULL,
-	nome varchar(255) NULL,
-	"createdAt" timestamptz NOT NULL,
-	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT seguradora_pkey PRIMARY KEY (id)
-);
-
-
--- public.users definition
-
--- Drop table
-
--- DROP TABLE public.users;
-
-CREATE TABLE public.users (
-	id serial4 NOT NULL,
-	"name" varchar(255) NULL,
-	email varchar(255) NULL,
-	"password" varchar(255) NULL,
-	"createdAt" timestamptz NOT NULL,
-	"updatedAt" timestamptz NOT NULL,
-	CONSTRAINT users_pkey PRIMARY KEY (id)
-);
-
-
--- public.clientes definition
-
--- Drop table
-
--- DROP TABLE public.clientes;
+DROP TABLE public.clientes;
 
 CREATE TABLE public.clientes (
 	id serial4 NOT NULL,
@@ -165,12 +75,7 @@ CREATE TABLE public.clientes (
 	CONSTRAINT "clientes_seguradoraId_fkey" FOREIGN KEY ("seguradoraId") REFERENCES public.seguradora(id) ON UPDATE CASCADE
 );
 
-
--- public."comments" definition
-
--- Drop table
-
--- DROP TABLE public."comments";
+DROP TABLE public."comments";
 
 CREATE TABLE public."comments" (
 	id serial4 NOT NULL,
@@ -184,12 +89,7 @@ CREATE TABLE public."comments" (
 	CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES public.users(id) ON UPDATE CASCADE
 );
 
-
--- public.sinistros definition
-
--- Drop table
-
--- DROP TABLE public.sinistros;
+DROP TABLE public.sinistros;
 
 CREATE TABLE public.sinistros (
 	id serial4 NOT NULL,
@@ -210,12 +110,7 @@ CREATE TABLE public.sinistros (
 	CONSTRAINT "sinistros_enderecoId_fkey" FOREIGN KEY ("enderecoId") REFERENCES public.endereco(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-
--- public.user_role definition
-
--- Drop table
-
--- DROP TABLE public.user_role;
+DROP TABLE public.user_role;
 
 CREATE TABLE public.user_role (
 	"userId" int4 NOT NULL,
