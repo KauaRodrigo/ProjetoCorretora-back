@@ -59,7 +59,7 @@ export class SinistrosService {
     async getAccidentsByFilters(filters: any): Promise<{ rows: any[], count: number }> {
         let {
             dataFilter = '',
-            searchFilter = { coluna: '', valor: ''},
+            searchFilter = { tipo: '', valor: ''},
             policyNumberFilter = '',
             companyFilter = '',
             statusFilter = '',
@@ -73,24 +73,25 @@ export class SinistrosService {
 
         let searchFilterValue = ''
 
-        if(searchFilter.valor !=    '' && searchFilter.coluna != '') {
-            if(searchFilter.coluna == "NOME") {
-                searchFilterValue = `AND c.name ILIKE '%${searchFilter.valor}%'`
+        console.log(searchFilter)
+        if(searchFilter.valor != '' && searchFilter.tipo != '') {
+            if(searchFilter.tipo == "name") {
+                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
             } else {
-                searchFilterValue = `AND s.${searchFilter.coluna} ILIKE '%${searchFilter.valor}%'`
+                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
             }
         }
 
         if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
         else dataFilter = ''
 
+        if(policyNumberFilter) {
+            policyNumberFilter = `AND s.codigo = '${policyNumberFilter}'`
+        }
+
         if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`
 
         if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`
-
-        if(statusFilter) statusFilter = `AND row.status = '${statusFilter}'`
-
-        if(typeFilter) typeFilter = `AND row.tipo = '${typeFilter}'`
 
         if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`
 
@@ -104,7 +105,8 @@ export class SinistrosService {
                        s.status,
                        s.terceiro,
                        c.name as "cliente",
-                       seg.nome as "seguradora"
+                       seg.nome as "seguradora",
+                       s.placa
                   FROM sinistros s
                   JOIN clientes c 
                     ON c.id = s."clienteId"
