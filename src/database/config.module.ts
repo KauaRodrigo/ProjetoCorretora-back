@@ -12,7 +12,7 @@ import { SequelizeModule } from '@nestjs/sequelize'
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_DATABASE,
-            autoLoadModels: true,
+            autoLoadModels: true,                        
             logging: false
         })
     ],

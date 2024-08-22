@@ -1,4 +1,13 @@
+DROP TABLE public.user_role;
+DROP TABLE public."comments";
+DROP TABLE public.sinistros;
+DROP TABLE public.seguradora;
+DROP TABLE public.endereco;
+DROP TABLE public.clientes;
 DROP TABLE public.users;
+DROP TABLE public.roles;
+DROP TYPE public."enum_sinistros_status";
+DROP TYPE public."enum_sinistros_tipo";
 
 CREATE TABLE public.users (
 	id serial4 NOT NULL,
@@ -10,17 +19,15 @@ CREATE TABLE public.users (
 	CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
-DROP TABLE public.roles;
 
 CREATE TABLE public.roles (
 	id serial4 NOT NULL,
 	"name" varchar(255) NULL,
 	"createdAt" timestamptz NOT NULL,
 	"updatedAt" timestamptz NOT NULL,
+
 	CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
-
-DROP TABLE public.seguradora;
 
 CREATE TABLE public.seguradora (
 	id serial4 NOT NULL,
@@ -30,7 +37,6 @@ CREATE TABLE public.seguradora (
 	CONSTRAINT seguradora_pkey PRIMARY KEY (id)
 );
 
-DROP TYPE public."enum_sinistros_status";
 
 CREATE TYPE public."enum_sinistros_status" AS ENUM (
 	'ABERTO',
@@ -40,7 +46,6 @@ CREATE TYPE public."enum_sinistros_status" AS ENUM (
 	'RETORNO_REPARO',
 	'CANCELADO');
 
-DROP TYPE public."enum_sinistros_tipo";
 
 CREATE TYPE public."enum_sinistros_tipo" AS ENUM (
 	'VEICULAR',
@@ -49,7 +54,6 @@ CREATE TYPE public."enum_sinistros_tipo" AS ENUM (
 	'VIAGEM',
 	'VIDA');
 
-DROP TABLE public.endereco;
 
 CREATE TABLE public.endereco (
 	id serial4 NOT NULL,
@@ -63,7 +67,6 @@ CREATE TABLE public.endereco (
 	CONSTRAINT endereco_pkey PRIMARY KEY (id)
 );
 
-DROP TABLE public.clientes;
 
 CREATE TABLE public.clientes (
 	id serial4 NOT NULL,
@@ -75,7 +78,6 @@ CREATE TABLE public.clientes (
 	CONSTRAINT "clientes_seguradoraId_fkey" FOREIGN KEY ("seguradoraId") REFERENCES public.seguradora(id) ON UPDATE CASCADE
 );
 
-DROP TABLE public."comments";
 
 CREATE TABLE public."comments" (
 	id serial4 NOT NULL,
@@ -89,7 +91,6 @@ CREATE TABLE public."comments" (
 	CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userId") REFERENCES public.users(id) ON UPDATE CASCADE
 );
 
-DROP TABLE public.sinistros;
 
 CREATE TABLE public.sinistros (
 	id serial4 NOT NULL,
@@ -110,7 +111,6 @@ CREATE TABLE public.sinistros (
 	CONSTRAINT "sinistros_enderecoId_fkey" FOREIGN KEY ("enderecoId") REFERENCES public.endereco(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-DROP TABLE public.user_role;
 
 CREATE TABLE public.user_role (
 	"userId" int4 NOT NULL,
@@ -121,3 +121,8 @@ CREATE TABLE public.user_role (
 	CONSTRAINT "user_role_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES public.roles(id) ON DELETE CASCADE ON UPDATE CASCADE,
 	CONSTRAINT "user_role_userId_fkey" FOREIGN KEY ("userId") REFERENCES public.users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
+INSERT INTO roles values (1, 'ATENDIMENTO', now(), now());
+INSERT INTO users values (1, 'Marcos Antônio', 'marcos@fercorretora.com.br', 'marcos123', now(), now());
+INSERT INTO user_role values (1, 1, now(), now());

@@ -39,6 +39,12 @@ export class SinistrosService {
                 }]
             })
 
+            const fotos = await this.sequelize.query(`select * from fotos where "sinistroId" = ${id}`)            
+            
+            const newFotos = fotos[0].map((foto: any) => {
+                return foto.conteudo.toString()
+            })
+
             return {
                 codigo: result.codigo,
                 placa: result.placa,
@@ -46,7 +52,8 @@ export class SinistrosService {
                 terceiro: result.terceiro,
                 tipo: result.tipo,
                 nome: result.cliente.name,
-                seguradora: result.cliente.seguradora.nome
+                seguradora: result.cliente.seguradora.nome,
+                fotos: newFotos
             };
             
         } catch (error) {
@@ -72,28 +79,27 @@ export class SinistrosService {
         } = filters
 
         let searchFilterValue = ''
-
-        console.log(searchFilter)
-        if(searchFilter.valor != '' && searchFilter.tipo != '') {
-            if(searchFilter.tipo == "name") {
-                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
+        
+        if(searchFilter.value != '' && searchFilter.type != '') {
+            if(searchFilter.type == "name") {
+                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
             } else {
-                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
+                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
-        else dataFilter = ''
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
+        else dataFilter = '';
 
-        if(policyNumberFilter) {
-            policyNumberFilter = `AND s.codigo = '${policyNumberFilter}'`
-        }
+        if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`;
 
-        if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`
+        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`;
 
-        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`
+        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`;
 
-        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`
+        if(typeFilter) typeFilter = `AND row.tipo = '${typeFilter}'`;
+
+        if(statusFilter) statusFilter = `AND row.status = '${statusFilter}'`;
 
         let sql = `
         SELECT row.*
@@ -123,6 +129,8 @@ export class SinistrosService {
                  ${searchFilterValue}
         ORDER BY ${orderBy} ${order}
         `
+
+        console.log(sql)
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT})
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
@@ -156,8 +164,8 @@ export class SinistrosService {
         }
     }
 
-    async CreateAccidentRegister(payload: any): Promise<boolean> {        
-        const transaction: Transaction = await this.sequelize.transaction();
+    async CreateAccidentRegister(payload: any, file: Buffer): Promise<boolean> {        
+        let transaction: Transaction = await this.sequelize.transaction();
         try {
             const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
 
@@ -176,8 +184,18 @@ export class SinistrosService {
             payload.status = "ABERTO";           
  
             const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
+            
+            await transaction.commit();            
 
-            await transaction.commit();
+            const query = `
+            INSERT INTO fotos (conteudo, "sinistroId")
+            VALUES (:file, :sinistroId);            
+            `;
+            
+            await this.sequelize.query(query, {
+                replacements: { file: file.toString('base64'), sinistroId: newRegister.id},
+                type: QueryTypes.INSERT
+            });            
 
             return !!newRegister;
         } catch (error) {
