@@ -6,6 +6,7 @@ import {
     Post,
     Query,
     UploadedFile,
+    UploadedFiles,
     UseGuards,    
     UseInterceptors
 } from '@nestjs/common';
@@ -14,7 +15,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import {User} from "../decorators/user.decorator";
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -45,10 +46,11 @@ export class SinistrosController {
         return retorno;        
     }
     
-    @UseInterceptors(FileInterceptor('files'))
+    @UseInterceptors(FilesInterceptor('files'))
     @Post('criar')    
-    async createAccidentRegister(@Body() payload: any, @UploadedFile() file: any): Promise<boolean> {                
-        return this.sinistroService.CreateAccidentRegister(payload, file.buffer)
+    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                
+        console.log(files)
+        return this.sinistroService.CreateAccidentRegister(payload, files)
     }
 
     @Post('editar/:id')

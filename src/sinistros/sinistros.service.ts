@@ -164,7 +164,7 @@ export class SinistrosService {
         }
     }
 
-    async CreateAccidentRegister(payload: any, file: Buffer): Promise<boolean> {        
+    async CreateAccidentRegister(payload: any, files: any): Promise<boolean> {            
         let transaction: Transaction = await this.sequelize.transaction();
         try {
             const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
@@ -187,15 +187,27 @@ export class SinistrosService {
             
             await transaction.commit();            
 
-            const query = `
-            INSERT INTO fotos (conteudo, "sinistroId")
-            VALUES (:file, :sinistroId);            
-            `;
-            
-            await this.sequelize.query(query, {
-                replacements: { file: file.toString('base64'), sinistroId: newRegister.id},
-                type: QueryTypes.INSERT
-            });            
+            if(files) {
+
+                for(const file of files) {
+
+                    transaction = await this.sequelize.transaction();
+                    
+                    const query = `
+                        INSERT INTO fotos (conteudo, "sinistroId")
+                        VALUES (:file, :sinistroId);            
+                    `;
+
+                    await this.sequelize.query(query, {
+                        replacements: { file: file.buffer.toString('base64'), sinistroId: newRegister.id},
+                        type: QueryTypes.INSERT
+                    });          
+                    
+                    await transaction.commit();
+                }
+                
+                
+            }
 
             return !!newRegister;
         } catch (error) {
