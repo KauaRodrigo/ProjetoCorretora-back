@@ -5,13 +5,17 @@ import {
     Param,
     Post,
     Query,
-    UseGuards    
+    UploadedFile,
+    UploadedFiles,
+    UseGuards,    
+    UseInterceptors
 } from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import {User} from "../decorators/user.decorator";
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')
@@ -23,7 +27,7 @@ export class SinistrosController {
     async FindAccidentsByFilters(@Body() filters: any): Promise<{ rows: any[], count: number }> {
         const retorno = await this.sinistroService.getAccidentsByFilters(filters);                
         return retorno;        
-    }
+    } 
 
     @Post('/:id/comment')
     async AddComent(@User() user: any, @Param('id') id: number, @Body() payload: any): Promise<boolean> {        
@@ -42,9 +46,11 @@ export class SinistrosController {
         return retorno;        
     }
     
+    @UseInterceptors(FilesInterceptor('files'))
     @Post('criar')    
-    async createAccidentRegister(@Body() payload: any): Promise<boolean> {        
-        return this.sinistroService.CreateAccidentRegister(payload)
+    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                
+        console.log(files)
+        return this.sinistroService.CreateAccidentRegister(payload, files)
     }
 
     @Post('editar/:id')
