@@ -43,7 +43,7 @@ export class SinistrosService {
             
             const newFotos = fotos[0].map((foto: any) => {
                 return foto.conteudo.toString()
-            })
+            })            
 
             return {
                 codigo: result.codigo,
@@ -53,7 +53,8 @@ export class SinistrosService {
                 tipo: result.tipo,
                 nome: result.cliente.name,
                 seguradora: result.cliente.seguradora.nome,
-                fotos: newFotos
+                fotos: newFotos,
+                dataOcorrencia: format(result.dataOcorrencia, 'yyyy-MM-dd')
             };
             
         } catch (error) {

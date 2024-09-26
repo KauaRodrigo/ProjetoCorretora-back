@@ -36,6 +36,13 @@ export default class Sinistro extends Model {
     @Column(DataType.DATE)
     deletedAt: Date
 
+    @Column({
+        field: 'data_ocorrencia',
+        type: DataType.DATE
+    })
+    dataOcorrencia: Date
+
+
     @ForeignKey(() => Cliente)
     @Column({
         field: 'clienteId'
