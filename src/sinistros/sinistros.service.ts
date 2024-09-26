@@ -89,7 +89,7 @@ export class SinistrosService {
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND row.data_ocorrencia BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
         else dataFilter = '';
 
         if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`;
@@ -113,7 +113,8 @@ export class SinistrosService {
                        s.terceiro,
                        c.name as "cliente",
                        seg.nome as "seguradora",
-                       s.placa
+                       s.placa,
+                       s.data_ocorrencia
                   FROM sinistros s
                   JOIN clientes c 
                     ON c.id = s."clienteId"
