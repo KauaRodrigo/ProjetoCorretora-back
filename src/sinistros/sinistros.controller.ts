@@ -80,4 +80,16 @@ export class SinistrosController {
         return retorno;
     }
 
+    @Post('atualizarComentario/:id')
+    async atualizarComentario(@Param('id') idComentario, @Body() payload): Promise<any> {
+        const retorno = await this.sinistroService.atualizarComentario(payload, idComentario);
+        return retorno
+    }
+
+    @Post('excluirComentario/:id')
+    async excluirComentario(@Param('id') idComentario): Promise<any> {
+        const retorno = await this.sinistroService.excluirComentario(idComentario);
+        return retorno
+    }
+
 }

@@ -45,9 +45,13 @@ export class SinistrosService {
                 return foto.conteudo.toString()
             })            
 
+            console.log(result)
+
             return {
                 codigo: result.codigo,
                 placa: result.placa,
+                observacoes: result.observacoes,
+                numeroSinistro: result.numeroSinistro,
                 evento: result.evento,
                 terceiro: result.terceiro,
                 tipo: result.tipo,
@@ -105,7 +109,8 @@ export class SinistrosService {
         let sql = `
         SELECT row.*
           FROM (SELECT s.id,
-                       s.codigo,                
+                       s.codigo,
+                       s.numero_sinistro AS "numeroSinistro",                
                        s.evento,               
                        s.tipo,
                        s."createdAt",
@@ -130,9 +135,7 @@ export class SinistrosService {
                  ${thirdFilter}
                  ${searchFilterValue}
         ORDER BY ${orderBy} ${order}
-        `
-
-        console.log(sql)
+        `        
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT})
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
@@ -140,6 +143,7 @@ export class SinistrosService {
         const rows = query.map((row) => ({
             id:         row.id,
             code:       row.codigo,
+            numeroSinistro: row.numeroSinistro,
             type:       row.tipo,
             event:      row.evento,
             client:     row.cliente,
@@ -241,9 +245,11 @@ export class SinistrosService {
             ]
         })        
         
-        const rows = result.map((row: any) => ({            
+        const rows = result.map((row: any) => ({    
+            idUsuario: row.user.id,        
             usuario: row.user.name,
             conteudo: row.conteudo,
+            idComentario: row.id,
             dataComentario: format(row.createdAt, 'dd/MM/yyyy hh:mm')
         }))
 
@@ -260,9 +266,7 @@ export class SinistrosService {
             await this.sinistroModel.update(
                 { status: payload.status }, 
                 { where: { id }
-            });
-
-            console.log(payload)
+            });            
 
             await this.commentsModel.create({
                 conteudo: payload.descricao,
@@ -325,6 +329,7 @@ export class SinistrosService {
         const sql = `
         SELECT s.id,
                s.codigo,
+               s.numero_sinistro AS "numeroSinistro",
                se.nome,
                s.evento,
                c.name as cliente,
@@ -343,6 +348,7 @@ export class SinistrosService {
         const rows = query.map((row: any) => ({
             id: row.id,
             code: row.codigo,
+            numeroSinistro: row.numeroSinistro,
             type: row.tipo,
             event: row.evento,
             cliente: row.cliente,
@@ -357,5 +363,23 @@ export class SinistrosService {
 
     }
 
+    async atualizarComentario(payload, idComentario) {
+        const result = await this.commentsModel.update({
+            conteudo: payload.conteudo
+        }, {
+            where: {
+                id: idComentario
+            }
+        })
+        return !!result;        
+    }
+
+    async excluirComentario(idComentario) {
+        return this.commentsModel.destroy({
+            where: {
+                id: idComentario
+            }
+        })
+    }
 
 }

@@ -42,6 +42,17 @@ export default class Sinistro extends Model {
     })
     dataOcorrencia: Date
 
+    @Column({
+        field: 'numero_sinistro',
+        type: DataType.INTEGER
+    })
+    numeroSinistro: Number
+
+    @Column({
+        field: 'observacoes',
+        type: DataType.STRING
+    })
+    observacoes
 
     @ForeignKey(() => Cliente)
     @Column({
