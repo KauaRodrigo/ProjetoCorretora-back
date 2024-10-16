@@ -48,8 +48,7 @@ export class SinistrosController {
     
     @UseInterceptors(FilesInterceptor('files'))
     @Post('criar')    
-    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                
-        console.log(files)
+    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                        
         return this.sinistroService.CreateAccidentRegister(payload, files)
     }
 

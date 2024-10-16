@@ -45,8 +45,6 @@ export class SinistrosService {
                 return foto.conteudo.toString()
             })            
 
-            console.log(result)
-
             return {
                 codigo: result.codigo,
                 placa: result.placa,
