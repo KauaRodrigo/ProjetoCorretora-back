@@ -39,14 +39,24 @@ export class SinistrosService {
                 }]
             })
 
+            const fotos = await this.sequelize.query(`select * from fotos where "sinistroId" = ${id}`)            
+            
+            const newFotos = fotos[0].map((foto: any) => {
+                return foto.conteudo.toString()
+            })            
+
             return {
                 codigo: result.codigo,
                 placa: result.placa,
+                observacoes: result.observacoes,
+                numeroSinistro: result.numeroSinistro,
                 evento: result.evento,
                 terceiro: result.terceiro,
                 tipo: result.tipo,
                 nome: result.cliente.name,
-                seguradora: result.cliente.seguradora.nome
+                seguradora: result.cliente.seguradora.nome,
+                fotos: newFotos,
+                dataOcorrencia: format(result.dataOcorrencia, 'yyyy-MM-dd')
             };
             
         } catch (error) {
@@ -72,33 +82,33 @@ export class SinistrosService {
         } = filters
 
         let searchFilterValue = ''
-
-        console.log(searchFilter)
-        if(searchFilter.valor != '' && searchFilter.tipo != '') {
-            if(searchFilter.tipo == "name") {
-                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
+        
+        if(searchFilter.value != '' && searchFilter.type != '') {
+            if(searchFilter.type == "name") {
+                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
             } else {
-                searchFilterValue = `AND row.${searchFilter.tipo} ILIKE '%${searchFilter.valor}%'`
+                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."createdAt" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`
-        else dataFilter = ''
+        if(dataFilter.init && dataFilter.end) dataFilter = `AND row.data_ocorrencia BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
+        else dataFilter = '';
 
-        if(policyNumberFilter) {
-            policyNumberFilter = `AND s.codigo = '${policyNumberFilter}'`
-        }
+        if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`;
 
-        if(policyNumberFilter) policyNumberFilter = `AND row.codigo = ${policyNumberFilter}`
+        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`;
 
-        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`
+        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`;
 
-        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`
+        if(typeFilter) typeFilter = `AND row.tipo = '${typeFilter}'`;
+
+        if(statusFilter) statusFilter = `AND row.status = '${statusFilter}'`;
 
         let sql = `
         SELECT row.*
           FROM (SELECT s.id,
-                       s.codigo,                
+                       s.codigo,
+                       s.numero_sinistro AS "numeroSinistro",                
                        s.evento,               
                        s.tipo,
                        s."createdAt",
@@ -106,7 +116,8 @@ export class SinistrosService {
                        s.terceiro,
                        c.name as "cliente",
                        seg.nome as "seguradora",
-                       s.placa
+                       s.placa,
+                       s.data_ocorrencia
                   FROM sinistros s
                   JOIN clientes c 
                     ON c.id = s."clienteId"
@@ -122,7 +133,7 @@ export class SinistrosService {
                  ${thirdFilter}
                  ${searchFilterValue}
         ORDER BY ${orderBy} ${order}
-        `
+        `        
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT})
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
@@ -130,6 +141,7 @@ export class SinistrosService {
         const rows = query.map((row) => ({
             id:         row.id,
             code:       row.codigo,
+            numeroSinistro: row.numeroSinistro,
             type:       row.tipo,
             event:      row.evento,
             client:     row.cliente,
@@ -156,8 +168,8 @@ export class SinistrosService {
         }
     }
 
-    async CreateAccidentRegister(payload: any): Promise<boolean> {        
-        const transaction: Transaction = await this.sequelize.transaction();
+    async CreateAccidentRegister(payload: any, files: any): Promise<boolean> {            
+        let transaction: Transaction = await this.sequelize.transaction();
         try {
             const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
 
@@ -176,8 +188,30 @@ export class SinistrosService {
             payload.status = "ABERTO";           
  
             const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
+            
+            await transaction.commit();            
 
-            await transaction.commit();
+            if(files) {
+
+                for(const file of files) {
+
+                    transaction = await this.sequelize.transaction();
+                    
+                    const query = `
+                        INSERT INTO fotos (conteudo, "sinistroId")
+                        VALUES (:file, :sinistroId);            
+                    `;
+
+                    await this.sequelize.query(query, {
+                        replacements: { file: file.buffer.toString('base64'), sinistroId: newRegister.id},
+                        type: QueryTypes.INSERT
+                    });          
+                    
+                    await transaction.commit();
+                }
+                
+                
+            }
 
             return !!newRegister;
         } catch (error) {
@@ -209,9 +243,11 @@ export class SinistrosService {
             ]
         })        
         
-        const rows = result.map((row: any) => ({            
+        const rows = result.map((row: any) => ({    
+            idUsuario: row.user.id,        
             usuario: row.user.name,
             conteudo: row.conteudo,
+            idComentario: row.id,
             dataComentario: format(row.createdAt, 'dd/MM/yyyy hh:mm')
         }))
 
@@ -228,9 +264,7 @@ export class SinistrosService {
             await this.sinistroModel.update(
                 { status: payload.status }, 
                 { where: { id }
-            });
-
-            console.log(payload)
+            });            
 
             await this.commentsModel.create({
                 conteudo: payload.descricao,
@@ -293,6 +327,7 @@ export class SinistrosService {
         const sql = `
         SELECT s.id,
                s.codigo,
+               s.numero_sinistro AS "numeroSinistro",
                se.nome,
                s.evento,
                c.name as cliente,
@@ -311,6 +346,7 @@ export class SinistrosService {
         const rows = query.map((row: any) => ({
             id: row.id,
             code: row.codigo,
+            numeroSinistro: row.numeroSinistro,
             type: row.tipo,
             event: row.evento,
             cliente: row.cliente,
@@ -325,5 +361,23 @@ export class SinistrosService {
 
     }
 
+    async atualizarComentario(payload, idComentario) {
+        const result = await this.commentsModel.update({
+            conteudo: payload.conteudo
+        }, {
+            where: {
+                id: idComentario
+            }
+        })
+        return !!result;        
+    }
+
+    async excluirComentario(idComentario) {
+        return this.commentsModel.destroy({
+            where: {
+                id: idComentario
+            }
+        })
+    }
 
 }
