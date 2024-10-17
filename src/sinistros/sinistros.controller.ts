@@ -48,8 +48,7 @@ export class SinistrosController {
     
     @UseInterceptors(FilesInterceptor('files'))
     @Post('criar')    
-    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                
-        console.log(files)
+    async createAccidentRegister(@Body() payload: any, @UploadedFiles() files: any): Promise<boolean> {                        
         return this.sinistroService.CreateAccidentRegister(payload, files)
     }
 
@@ -78,6 +77,18 @@ export class SinistrosController {
     async getAccidentSingle(@Param('id') id: number): Promise<any> {
         const retorno = await this.sinistroService.getAccidentSingle(id);    
         return retorno;
+    }
+
+    @Post('atualizarComentario/:id')
+    async atualizarComentario(@Param('id') idComentario, @Body() payload): Promise<any> {
+        const retorno = await this.sinistroService.atualizarComentario(payload, idComentario);
+        return retorno
+    }
+
+    @Post('excluirComentario/:id')
+    async excluirComentario(@Param('id') idComentario): Promise<any> {
+        const retorno = await this.sinistroService.excluirComentario(idComentario);
+        return retorno
     }
 
 }
