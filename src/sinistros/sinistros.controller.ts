@@ -4,8 +4,7 @@ import {
     Get,
     Param,
     Post,
-    Query,
-    UploadedFile,
+    Query,    
     UploadedFiles,
     UseGuards,    
     UseInterceptors
@@ -15,7 +14,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { TipoSinistro } from 'src/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
 import {User} from "../decorators/user.decorator";
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard)
 @Controller('sinistros')

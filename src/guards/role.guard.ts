@@ -8,7 +8,7 @@ export class RolesGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
     if (roles.length == 0) {
-      return true; // Se a rota não tiver roles definidos, permitir o acesso
+      return true;
     }
     const request = context.switchToHttp().getRequest();
     const user = request.user;

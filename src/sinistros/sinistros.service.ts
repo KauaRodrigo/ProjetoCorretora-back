@@ -39,7 +39,7 @@ export class SinistrosService {
                 }]
             })
 
-            const fotos = await this.sequelize.query(`select * from fotos where "sinistroId" = ${id}`)            
+            const fotos = await this.sequelize.query(`select * from fotos where "sinistroId" = ${id}`)
             
             const newFotos = fotos[0].map((foto: any) => {
                 return foto.conteudo.toString()
