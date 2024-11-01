@@ -1,4 +1,4 @@
-import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, NotNull, Table} from "sequelize-typescript";
 import { StatusSinistro } from "../../enums/statusSinistro";
 import { TipoSinistro } from "../../enums/tipoSinistros"
 import Cliente from "./clientes.model";
@@ -22,6 +22,13 @@ export default class Sinistro extends Model {
     @AllowNull(false)
     @Column
     terceiro: boolean
+
+    @Column({
+        type: DataType.STRING,
+        field: 'nome_terceiro',
+        allowNull: false
+    })
+    nomeTerceiro: string
 
     @AllowNull(false)
     @Column(DataType.ENUM(...Object.values(TipoSinistro)))
