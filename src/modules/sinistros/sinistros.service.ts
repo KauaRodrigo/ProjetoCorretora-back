@@ -4,11 +4,11 @@ import {QueryTypes, Sequelize, Transaction} from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/dtos/lastRecords.dto';
-import { TipoSinistro } from 'src/enums/tipoSinistros';
+import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import { format, subDays } from 'date-fns';
-import Adress from "../database/models/adress.model";
-import Comments from "../database/models/comments.model";
-import Seguradora from "../database/models/seguradora.model";
+import Adress from "../../database/models/adress.model";
+import Comments from "../../database/models/comments.model";
+import Seguradora from "../../database/models/seguradora.model";
 import { User } from 'src/database/models/user.model';
 
 

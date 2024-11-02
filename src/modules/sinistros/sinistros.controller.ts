@@ -10,10 +10,10 @@ import {
     UseInterceptors
 } from '@nestjs/common';
 import { SinistrosService } from './sinistros.service';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { TipoSinistro } from 'src/enums/tipoSinistros';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import LastRecords from 'src/dtos/lastRecords.dto';
-import {User} from "../decorators/user.decorator";
+import {User} from "../../common/decorators/user.decorator";
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard)

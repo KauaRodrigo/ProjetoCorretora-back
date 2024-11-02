@@ -1,6 +1,6 @@
 import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, NotNull, Table} from "sequelize-typescript";
-import { StatusSinistro } from "../../enums/statusSinistro";
-import { TipoSinistro } from "../../enums/tipoSinistros"
+import { StatusSinistro } from "../../common/enums/statusSinistro";
+import { TipoSinistro } from "../../common/enums/tipoSinistros"
 import Cliente from "./clientes.model";
 import Adress from "./adress.model";
 

@@ -1,4 +1,4 @@
-import { TipoSinistro } from "src/enums/tipoSinistros"
+import { TipoSinistro } from "src/common/enums/tipoSinistros"
 
 export default class LastRecords {
     id: number

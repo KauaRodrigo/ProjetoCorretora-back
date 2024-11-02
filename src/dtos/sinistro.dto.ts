@@ -1,7 +1,7 @@
 import Cliente from "src/database/models/clientes.model";
 import Seguradora from "src/database/models/seguradora.model";
-import { StatusSinistro } from "src/enums/statusSinistro";
-import { TipoSinistro } from "src/enums/tipoSinistros"
+import { StatusSinistro } from "src/common/enums/statusSinistro";
+import { TipoSinistro } from "src/common/enums/tipoSinistros"
 
 export default class SinistroDto {
 
