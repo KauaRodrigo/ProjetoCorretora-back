@@ -7,7 +7,7 @@ import Comments from "../../database/models/comments.model";
 import Sinistro from "../../database/models/sinistro.model";
 import Seguradora from "../../database/models/seguradora.model";
 import Cliente from "../../database/models/clientes.model";
-import {databaseProvider} from "../../database/database.provider";
+import {databaseProvider} from "../../config/database.config";
 import { User } from 'src/database/models/user.model';
 
 @Module({

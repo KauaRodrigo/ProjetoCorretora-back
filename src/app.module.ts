@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { DatabaseModule } from './config/config.module';
+import { DatabaseModule } from './database/database.module';
 import { UsersController } from './modules/users/users.controller';
 import { UsersService } from './modules/users/users.service';
 import { UsersModule } from './modules/users/users.module';
@@ -12,7 +10,7 @@ import { SinistrosModule } from './modules/sinistros/sinistros.module';
 
 @Module({
   imports: [DatabaseModule, SequelizeConfigModule,UsersModule, AuthModule, SinistrosModule],
-  controllers: [AppController, UsersController, SinistrosController],
-  providers: [AppService, UsersService],
+  controllers: [UsersController, SinistrosController],
+  providers: [UsersService],
 })
 export class AppModule {}

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import {QueryTypes, Sequelize, Transaction} from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
-import LastRecords from 'src/dtos/lastRecords.dto';
+import LastRecords from 'src/common/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import { format, subDays } from 'date-fns';
 import Adress from "../../database/models/adress.model";

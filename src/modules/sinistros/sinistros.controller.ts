@@ -12,7 +12,7 @@ import {
 import { SinistrosService } from './sinistros.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { TipoSinistro } from 'src/common/enums/tipoSinistros';
-import LastRecords from 'src/dtos/lastRecords.dto';
+import LastRecords from 'src/common/dtos/lastRecords.dto';
 import {User} from "../../common/decorators/user.decorator";
 import { FilesInterceptor } from '@nestjs/platform-express';
 
