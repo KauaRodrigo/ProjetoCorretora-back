@@ -317,58 +317,19 @@ export class SinistrosService {
         }
     }*/
 
-    async eeditarDadosSinistro (id:number, payload:any): Promise<boolean>{
-        const transaction = await this.sequelize.transaction(); 
-        console.log("operante");
-        /*const sql = `
-                        UPDATE sinistros
-                        SET codigo=111, placa=111111, "evento"='Canônico não!', terceiro=true, tipo='VEICULAR', "updatedAt"=current_date 
-                        where id=9
-                    `;*/
-        try{
-            //const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.DELETE });
-
-            await this.sinistroModel.update(
-                { numero_sinistro: 10120 },
-                { where: { id }}
-            ); 
-            
-            console.log(payload)
-            //console.log(this.sinistroModel.numero_sinistro);
-            //console.log(payload.numeroSinistro);
-            await transaction.commit();
-            return true;
-        }catch{
-            await transaction.rollback();
-            return false;
-        }
-    }
-
     async editarDadosSinistro(id: number, payload:any): Promise<boolean> {    
-        console.log('----sinistroService-----')
-        console.log(payload);
-        console.log('---------')
-        //const transaction = await this.sequelize.transaction();        
         let result;
-
         try {
             var teste = await this.sinistroModel.findOne({where: { id }});
-            console.log("TESTE AQUI:")
-            console.log(teste)
-            result = await this.sinistroModel.update(
-                  payload, 
-                { where: { id }
+            result = await this.sinistroModel.update(payload, { 
+                where: { 
+                    id 
+                }
             });
-            
-            //await transaction.commit();
-            console.log(result)
             return result;
         } catch(error) {
             throw(error);
-            //transaction.rollback();
         }
-
-        return !!result;  
     }
 
     async EditAccidentRegister(id: number, payload: any): Promise<boolean> {

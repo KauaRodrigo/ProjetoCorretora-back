@@ -54,9 +54,6 @@ export class SinistrosController {
 
     @Post('editar/:id')
     async editarDadosSinistro(@Body() payload:any, @Param('id') id:number): Promise<boolean> {
-        console.log("sinistros.controller");
-        console.log(id);
-        console.log(payload);
         return this.sinistroService.editarDadosSinistro(id, payload);
     }
 
