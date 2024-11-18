@@ -5,9 +5,9 @@ import { User } from 'src/database/models/user.model';
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
-
+    
     @Get()
-    async findUserByEmail(@Query() email: string): Promise<User> {
+    async findUserByEmail(@Query() email: string): Promise<User> {        
         return this.usersService.findByEmail(email)
     }
 }
