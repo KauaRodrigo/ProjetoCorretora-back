@@ -6,6 +6,7 @@ import PasswordResetTokenModel from 'src/database/models/passwordResetToken.mode
 import { User } from 'src/database/models/user.model';
 import { UsersService } from 'src/modules/users/users.service';
 import { EmailService } from '../email/email.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,9 @@ export class AuthService {
     async signIn(email: string, pass: string): Promise<any> {
         const user = await this.userService.findByEmail(email) 
 
-        if(user?.password !== pass) {
+        console.log(pass, user?.password)
+        console.log(await bcrypt.compare(pass, user?.password))
+        if(!await bcrypt.compare(pass, user?.password)) {
             throw new UnauthorizedException();
         }        
 
@@ -32,6 +35,7 @@ export class AuthService {
             }),
             username: user.name
         };
+        
         return {
             access_token: await this.jwtService.signAsync(payload),
             user: payload 
@@ -53,12 +57,12 @@ export class AuthService {
         this.userModel.update({
             resetToken: token,
             resetTokenExpires: new Date(Date.now() + 30 * 60 * 1000)            
-        }, {where: {
+        }, {
+            where: {
             id: user.id
         }})
 
-        this.emailService.sendValidationEmail(email, token);
-        
+        this.emailService.sendValidationEmail(email, token);        
     }
 
     async verifyResetToken(token: string) {        
@@ -72,9 +76,15 @@ export class AuthService {
         })
     }
 
-    async updatePassword(password: string) {
+    async updatePassword(password: string) {        
+        password = await bcrypt.hash(password, 10);
+
         return this.userModel.update({
             password
-        }, {where: {id: 4}})
+        }, {
+            where: {
+                id: 4
+            }
+        })
     }
 }
