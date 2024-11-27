@@ -40,7 +40,7 @@ export class AuthController {
 
     @Post('passwordreset/update')
     updatePassword(@Body() payload: any) {        
-        return this.authService.updatePassword(payload.password);
+        return this.authService.updatePassword(payload);
     }
 
 }

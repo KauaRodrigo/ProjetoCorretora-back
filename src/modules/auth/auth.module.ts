@@ -8,6 +8,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import PasswordResetTokenModel from 'src/database/models/passwordResetToken.model';
 import { User } from 'src/database/models/user.model';
 import { EmailService } from '../email/email.service';
+import { databaseProvider } from 'src/config/database.config';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { EmailService } from '../email/email.service';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService],
-  exports: [AuthService]
+  providers: [AuthService, EmailService, ...databaseProvider],
+  exports: [AuthService, ...databaseProvider]
 })
 export class AuthModule {}

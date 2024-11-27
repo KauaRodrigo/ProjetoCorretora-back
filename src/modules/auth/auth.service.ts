@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import PasswordResetTokenModel from 'src/database/models/passwordResetToken.model';
 import { User } from 'src/database/models/user.model';
 import { UsersService } from 'src/modules/users/users.service';
@@ -16,7 +16,8 @@ export class AuthService {
         private jwtService: JwtService,
         private emailService: EmailService,
         @InjectModel(PasswordResetTokenModel) readonly tokenModel: typeof PasswordResetTokenModel,
-        @InjectModel(User) readonly userModel: typeof User        
+        @InjectModel(User) readonly userModel: typeof User,
+        @Inject('SEQUELIZE') private sequelize: Sequelize
     ) {}
  
     async signIn(email: string, pass: string): Promise<any> {
@@ -56,7 +57,8 @@ export class AuthService {
 
         this.userModel.update({
             resetToken: token,
-            resetTokenExpires: new Date(Date.now() + 30 * 60 * 1000)            
+            resetTokenExpires: new Date(Date.now() + 30 * 60 * 1000),
+            dataCriacaoToken:  new Date()
         }, {
             where: {
             id: user.id
@@ -70,20 +72,29 @@ export class AuthService {
             where: {
                 resetToken: token,
                 resetTokenExpires: {
-                    [Op.gte]: new Date()
+                    [Op.gte]: new Date(),                    
+                },
+                dataCriacaoToken: {
+                    [Op.gt]: this.sequelize.col('updatedAt')
                 }
             }
         })
     }
 
-    async updatePassword(password: string) {        
-        password = await bcrypt.hash(password, 10);
+    async updatePassword(payload: { password: string, token: string }) {        
+        const password = await bcrypt.hash(payload.password, 10);
+
+        const userId = (await this.userModel.findOne({
+            where: {
+                resetToken: payload.token
+            }
+        })).id
 
         return this.userModel.update({
             password
         }, {
             where: {
-                id: 4
+                id: userId
             }
         })
     }

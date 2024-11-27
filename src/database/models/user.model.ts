@@ -21,6 +21,9 @@ export class User extends Model {
     @Column(DataType.TEXT)
     resetToken: string
 
+    @Column(DataType.DATE)
+    dataCriacaoToken: Date
+
     @BelongsToMany(() => Roles, () => UserRole)
     roles: Roles[];
 }
