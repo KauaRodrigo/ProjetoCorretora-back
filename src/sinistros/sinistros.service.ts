@@ -10,6 +10,7 @@ import Adress from "../database/models/adress.model";
 import Comments from "../database/models/comments.model";
 import Seguradora from "../database/models/seguradora.model";
 import { User } from 'src/database/models/user.model';
+import { exit } from 'process';
 
 
 @Injectable()
@@ -46,7 +47,7 @@ export class SinistrosService {
             })            
 
             return {
-                codigo: result.codigo,
+                //codigo: result.codigo,
                 placa: result.placa,
                 observacoes: result.observacoes,
                 numeroSinistro: result.numeroSinistro,
@@ -317,13 +318,28 @@ export class SinistrosService {
         }
     }*/
 
+        async excluirSinitro(id: number): Promise<any> {    
+            let result;
+            try {
+                var teste = await this.sinistroModel.findOne({where: { id }});
+                result = await this.sinistroModel.destroy({ 
+                    where: { 
+                        id
+                    }
+                });
+                return result;
+            } catch(error) {
+                throw(error);
+            }
+        }
+
     async editarDadosSinistro(id: number, payload:any): Promise<boolean> {    
         let result;
         try {
             var teste = await this.sinistroModel.findOne({where: { id }});
             result = await this.sinistroModel.update(payload, { 
                 where: { 
-                    id 
+                    id
                 }
             });
             return result;

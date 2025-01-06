@@ -58,8 +58,8 @@ export class SinistrosController {
     }
 
     @Post('excluir/:id')
-    async excludeAccidentRegister(@Param('id') id: number): Promise<boolean> {
-        return this.sinistroService.excludeAccidentRegister(id);
+    async excluirSinitro(@Param('id') id:number): Promise<any> {
+        return this.sinistroService.excluirSinitro(id);
     }
 
     /*@Post('deletar/:id')
