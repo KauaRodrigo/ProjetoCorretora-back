@@ -47,7 +47,7 @@ export class SinistrosService {
             })            
 
             return {
-                //codigo: result.codigo,
+                codigo: result.codigo,
                 placa: result.placa,
                 observacoes: result.observacoes,
                 numeroSinistro: result.numeroSinistro,
