@@ -24,12 +24,12 @@ export class AuthController {
     }
 
     @Post('passwordreset')
-    generatePasswordResetToken(@Body() payload: resetGenerate, @Res() response: Response) {        
-        const oRetorno: any = this.authService.createResetToken(payload.email);
+    async generatePasswordResetToken(@Body() payload: resetGenerate, @Res() response: Response) {        
+        const oRetorno: any = await this.authService.createResetToken(payload.email);
 
         return response.send({
-            status: oRetorno.status,
-            message: oRetorno.message
+            status: oRetorno?.status ?? 200,
+            message: oRetorno?.message ?? null
         })
     }
 

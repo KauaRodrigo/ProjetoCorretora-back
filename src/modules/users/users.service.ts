@@ -13,6 +13,13 @@ export class UsersService {
         @InjectModel(UserRole) readonly userRoleModel: typeof UserRole
     ) {}    
 
+    /**
+     * 
+     * Busca um usuário pelo email
+     * 
+     * @param email 
+     * @returns {User}
+     */
     async findByEmail(email: string): Promise<User> {
         return this.userModel.findOne({
             where: {

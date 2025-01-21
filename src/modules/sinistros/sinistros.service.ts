@@ -1,15 +1,20 @@
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import {QueryTypes, Sequelize, Transaction} from 'sequelize';
+import { QueryTypes, Sequelize, Transaction } from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/common/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/common/enums/tipoSinistros';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import Adress from "../../database/models/adress.model";
 import Comments from "../../database/models/comments.model";
 import Seguradora from "../../database/models/seguradora.model";
 import { User } from 'src/database/models/user.model';
+
+type ResumoCard = {
+    aberto: number,
+    retorno_reparo: number     
+}
 
 
 @Injectable()
@@ -23,20 +28,14 @@ export class SinistrosService {
         @InjectModel(Seguradora) readonly  seguradoraModel: typeof Seguradora,
         @InjectModel(User) readonly userModel: typeof User,
         @Inject('SEQUELIZE') private sequelize: Sequelize
-    ) {
-    }
+    ) {}
 
     async getAccidentSingle(id: number): Promise<any> {
         try {
             const result: any = await this.sinistroModel.findOne({
                 where: {
                     id,
-                }, include: [{
-                    model: this.clienteModel,
-                    include: [
-                        this.seguradoraModel
-                    ]
-                }]
+                }
             })                        
 
             const fotos = await this.sequelize.query(`select * from fotos where "sinistroId" = :id`, {
@@ -127,8 +126,9 @@ export class SinistrosService {
                     ON c.id = s."clienteId"
                   JOIN seguradora seg 
                     on seg.id = c."seguradoraId"                 
+                 WHERE s."deletedAt" is null
                ) as row
-           WHERE 1 = 1
+           WHERE 1 = 1             
                  ${companyFilter}
                  ${dataFilter}
                  ${policyNumberFilter}
@@ -136,7 +136,7 @@ export class SinistrosService {
                  ${typeFilter}
                  ${thirdFilter}
                  ${searchFilterValue}
-        ORDER BY "${orderBy}" ${order}
+        ORDER BY "${orderBy}" ${order} 
         `;        
 
         const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT})
@@ -157,25 +157,33 @@ export class SinistrosService {
             rows,
             count: count[0].count
         }
-    }
+    }    
 
-    async getResumoCard(tipo: TipoSinistro): Promise<{ aberto: number, retorno_reparo: number }> {
+    async getResumoCard(tipo: TipoSinistro): Promise<ResumoCard> {
         const sql = `
-        SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO' AND s.tipo = '${tipo}') aberto,
-               (SELECT count(*) FROM sinistros s WHERE s.status = 'RETORNO_REPARO' AND s.tipo = '${tipo}') retorno_reparo
-        `
+            SELECT (SELECT count(*) FROM sinistros s WHERE s.status = 'ABERTO'         AND s.tipo = :tipo AND s."deletedAt" is null) aberto,
+                   (SELECT count(*) FROM sinistros s WHERE s.status = 'RETORNO_REPARO' AND s.tipo = :tipo AND s."deletedAt" is null) retorno_reparo
+        `;
 
-        const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT })
+        const query: any = await this.sinistroModel.sequelize.query(
+            sql, 
+            { 
+                type: QueryTypes.SELECT,
+                replacements: {
+                    tipo: tipo
+                } 
+            }
+        );
+
         return {
             aberto: query[0].aberto,
             retorno_reparo: query[0].retorno_reparo
-        }
+        };
     }
 
     async CreateAccidentRegister(payload: any, files: any): Promise<boolean> {            
         let transaction: Transaction = await this.sequelize.transaction();
-
-        console.log(payload)
+        
         try {
             const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
 
@@ -302,6 +310,17 @@ export class SinistrosService {
     }
 
     async excludeAccidentRegister(id: number): Promise<boolean> {
+        try {
+            const result = await this.sinistroModel.destroy({ where: { id }});
+
+            return !!result;
+        }
+        catch (error) {
+            throw(error);
+        }        
+    }
+
+    async cancelarSinistro(id: number): Promise<boolean> {
         const result = await this.sinistroModel.update({
             status: 'CANCELADO'
         }, { where: { id }})
@@ -327,8 +346,7 @@ export class SinistrosService {
         let {            
             page = 1,
             perPage = 5            
-        } = payload
-        const filter = subDays(new Date(), 3).toISOString()                        
+        } = payload        
 
         const sql = `
              SELECT s.id,
@@ -343,7 +361,8 @@ export class SinistrosService {
                 FROM sinistros s
                 JOIN clientes c on c.id = s."clienteId"          
                 JOIN seguradora se on se.id = c."seguradoraId"           
-                WHERE s."createdAt" >= '${filter}' 
+                WHERE s."createdAt" >= now() - '7 days'::INTERVAL 
+                  AND s."deletedAt" is null
                 ORDER BY "createdAt" DESC         
         `;
         

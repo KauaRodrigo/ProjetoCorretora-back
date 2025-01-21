@@ -42,7 +42,7 @@ export class AuthService {
     }
 
     async createResetToken(email: string) {
-        const user = await this.userService.findByEmail(email);
+        const user = await this.userService.findByEmail(email);                
 
         if(!user) {
             return {
@@ -62,7 +62,7 @@ export class AuthService {
             id: user.id
         }})
 
-        this.emailService.sendValidationEmail(email, token);        
+        return this.emailService.sendValidationEmail(email, token);        
     }
 
     async verifyResetToken(token: string) {        
@@ -71,10 +71,7 @@ export class AuthService {
                 resetToken: token,
                 resetTokenExpires: {
                     [Op.gte]: new Date(),                    
-                },
-                dataCriacaoToken: {
-                    [Op.gt]: this.sequelize.col('updatedAt')
-                }
+                }                
             }
         })
     }

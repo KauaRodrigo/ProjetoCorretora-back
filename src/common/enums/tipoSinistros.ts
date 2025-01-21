@@ -1,7 +1,7 @@
 export enum TipoSinistro {
-    VEICULAR = "VEICULAR",
+    VEICULAR    = "VEICULAR",
     RESIDENCIAL = "RESIDENCIAL",
     EMPRESARIAL = "EMPRESARIAL",
-    VIAGEM = "VIAGEM",
-    VIDA = "VIDA"
+    VIAGEM      = "VIAGEM",
+    VIDA        = "VIDA"
 }
