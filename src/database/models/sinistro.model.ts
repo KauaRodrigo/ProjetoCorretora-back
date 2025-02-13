@@ -1,6 +1,6 @@
-import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
-import { StatusSinistro } from "../../enums/statusSinistro";
-import { TipoSinistro } from "../../enums/tipoSinistros"
+import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, NotNull, Table} from "sequelize-typescript";
+import { StatusSinistro } from "../../common/enums/statusSinistro";
+import { TipoSinistro } from "../../common/enums/tipoSinistros"
 import Cliente from "./clientes.model";
 import Adress from "./adress.model";
 
@@ -11,7 +11,7 @@ import Adress from "./adress.model";
 export default class Sinistro extends Model {
     @AllowNull(false)
     @Column(DataType.BIGINT)
-    codigo: number
+    numeroApolice: number
 
     @Column
     placa: string
@@ -23,8 +23,12 @@ export default class Sinistro extends Model {
     @Column
     terceiro: boolean
 
-    @Column
-    caminho: string
+    @Column({
+        type: DataType.STRING,
+        field: 'nome_terceiro',
+        allowNull: false
+    })
+    nomeTerceiro: string
 
     @AllowNull(false)
     @Column(DataType.ENUM(...Object.values(TipoSinistro)))
@@ -37,16 +41,14 @@ export default class Sinistro extends Model {
     deletedAt: Date
 
     @Column({
-        field: 'data_ocorrencia',
         type: DataType.DATE
     })
     dataOcorrencia: Date
 
-    @Column({
-        field: 'numero_sinistro',
+    @Column({        
         type: DataType.INTEGER
     })
-    numeroSinistro: Number
+    numeroSinistro: number
 
     @Column({
         field: 'observacoes',

@@ -1,0 +1,1 @@
+export const MULTER_CONFIG = 'MULTER_CONFIG';

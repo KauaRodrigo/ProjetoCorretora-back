@@ -1,0 +1,3 @@
+class CommentDto {
+    content: string
+}

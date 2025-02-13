@@ -8,9 +8,20 @@ import UserRole from './models/userRole.model';
 import Seguradora from "./models/seguradora.model";
 import Adress from "./models/adress.model";
 import Comments from "./models/comments.model";
+import PasswordResetTokenModel from './models/passwordResetToken.model';
 
 @Module({ 
-  imports: [SequelizeModule.forFeature([User, Adress, Comments, Clientes, Seguradora, Roles, Sinistro, UserRole])],
+  imports: [SequelizeModule.forFeature([
+    User, 
+    Adress, 
+    Comments, 
+    Clientes, 
+    Seguradora, 
+    Roles, 
+    Sinistro, 
+    UserRole,
+    PasswordResetTokenModel 
+  ])],
   exports: [SequelizeModule],
 })
 export class SequelizeConfigModule {} 

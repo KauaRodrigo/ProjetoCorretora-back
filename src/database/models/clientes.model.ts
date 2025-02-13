@@ -15,6 +15,15 @@ export default class Cliente extends Model {
     })
     seguradoraId: number
 
+    @Column
+    cpf: string
+
+    @Column
+    telefone: string
+
+    @Column
+    dataNascimento: Date
+
     @BelongsTo(() => Seguradora)
     seguradora: Seguradora
 
