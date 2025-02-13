@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { QueryTypes, Sequelize, Transaction } from 'sequelize';
+import { QueryTypes, Sequelize, Transaction, Op } from 'sequelize';
 import Sinistro from 'src/database/models/sinistro.model';
 import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/common/dtos/lastRecords.dto';
@@ -33,6 +33,12 @@ export class SinistrosService {
     async getAccidentSingle(id: number): Promise<any> {
         try {
             const result: any = await this.sinistroModel.findOne({
+                include: [
+                    {
+                        model: this.clienteModel,
+                        include: [this.seguradoraModel]
+                    }                    
+                ],
                 where: {
                     id,
                 }
@@ -181,25 +187,16 @@ export class SinistrosService {
         };
     }
 
-    async CreateAccidentRegister(payload: any, files: any): Promise<boolean> {            
-        let transaction: Transaction = await this.sequelize.transaction();
+    async createAccidentRegister(payload: any, files: any): Promise<boolean> {            
+        let transaction: Transaction = await this.sequelize.transaction();        
         
-        try {
-            const seguradora: Seguradora = await this.seguradoraModel.create({ nome: payload.seguradora }, { transaction })
+        try {            
+            const seguradora: any = await this.seguradoraModel.findOrCreate({ where: { nome: `${payload.seguradora}` },  defaults: { nome: payload.seguradora }, returning: true})[0];
+            
+            const cliente: any = await this.clienteModel.findOrCreate({ where: { name: `${payload.nome}` }, defaults: { name: payload.nome, seguradoraId: seguradora.id }, returning: true})[0];
 
-            const cliente: Cliente = await this.clienteModel.create({ name: payload.nome, seguradoraId: seguradora.id }, { transaction })
-
-            const endereco: Adress = await this.enderecoModel.create({
-                cep:    payload.cep,
-                rua:    payload.rua,
-                bairro: payload.bairro,
-                cidade: payload.cidade,
-                estado: payload.estado,                
-            }, { transaction })
-
-            payload.enderecoId = endereco.id;
             payload.clienteId = cliente.id;
-            payload.status = "ABERTO";           
+            payload.status = "ABERTO";
  
             const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
             
@@ -320,10 +317,10 @@ export class SinistrosService {
         }        
     }
 
-    async cancelarSinistro(id: number): Promise<boolean> {
+    async cancelarSinistro(iId: number): Promise<boolean> {
         const result = await this.sinistroModel.update({
             status: 'CANCELADO'
-        }, { where: { id }})
+        }, { where: { iId }})
 
         return !!result;
     }
@@ -387,23 +384,39 @@ export class SinistrosService {
 
     }
 
-    async atualizarComentario(payload, idComentario) {
+    async atualizarComentario(oPayload: { conteudo: string }, iComentario: number): Promise<boolean> {
         const result = await this.commentsModel.update({
-            conteudo: payload.conteudo
+            conteudo: oPayload.conteudo
         }, {
             where: {
-                id: idComentario
+                id: iComentario
             }
         })
         return !!result;        
     }
 
-    async excluirComentario(idComentario) {
+    async excluirComentario(iComentario: number): Promise<number> {        
         return this.commentsModel.destroy({
             where: {
-                id: idComentario
+                id: iComentario
             }
-        })
+        })        
+    }
+    
+    /**
+     * Busca clientes com base no valor passado para o campo nome
+     * 
+     * @param {string} sNome
+     * @returns {Cliente[]}
+     */
+    async buscaClienteByNome(sNome: string): Promise<Cliente[]> {
+        return this.clienteModel.findAll({
+            where: {
+                name: {
+                    [Op.iLike]: `%${sNome}%`
+                }
+            }
+        });
     }
 
 }

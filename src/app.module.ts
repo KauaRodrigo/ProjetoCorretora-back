@@ -10,22 +10,28 @@ import { SinistrosController } from './modules/sinistros/sinistros.controller';
 import { SinistrosModule } from './modules/sinistros/sinistros.module';
 import emailConfig from './config/email.config';
 import { ConfigModule } from '@nestjs/config';
+import { ClienteModule } from './modules/clientes/clientes.module';
+import { ClienteController } from './modules/clientes/clientes.controller';
+import { SeguradoraController } from './modules/seguradora/seguradora.controller';
+import { SeguradoraModule } from './modules/seguradora/seguradora.module';
 
 @Module({
   imports: [
     DatabaseModule, 
     SequelizeConfigModule,
-    UsersModule, 
+    UsersModule,  
     AuthModule, 
     SinistrosModule, 
     EmailModule, 
+    ClienteModule,
+    SeguradoraModule,
     ConfigModule.forRoot(
       { 
         load: [emailConfig],
         isGlobal: true 
       }
     )],
-  controllers: [UsersController, SinistrosController],
+  controllers: [UsersController, SinistrosController, ClienteController, SeguradoraController],
   providers: [UsersService], 
 })
 export class AppModule {}
