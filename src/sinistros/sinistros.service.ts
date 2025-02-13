@@ -10,6 +10,7 @@ import Adress from "../database/models/adress.model";
 import Comments from "../database/models/comments.model";
 import Seguradora from "../database/models/seguradora.model";
 import { User } from 'src/database/models/user.model';
+import { exit } from 'process';
 
 
 @Injectable()
@@ -226,6 +227,7 @@ export class SinistrosService {
             conteudo: content,
             userId: userId,
             sinistroId: id
+            //https://bit.ly/4fg7dWH
         })
         return !!result;
     }
@@ -301,6 +303,49 @@ export class SinistrosService {
         }, { where: { id }})
 
         return !!result;
+    }
+
+    /*async deleteAccidentRegister (id:number): Promise<boolean>{
+        const sql = `
+                        DELETE FROM sinistros WHERE id=${id};
+                    `;
+        
+        try{
+            const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.DELETE });
+            return true;
+        }catch{
+            return false;
+        }
+    }*/
+
+        async excluirSinitro(id: number): Promise<any> {    
+            let result;
+            try {
+                var teste = await this.sinistroModel.findOne({where: { id }});
+                result = await this.sinistroModel.destroy({ 
+                    where: { 
+                        id
+                    }
+                });
+                return result;
+            } catch(error) {
+                throw(error);
+            }
+        }
+
+    async editarDadosSinistro(id: number, payload:any): Promise<boolean> {    
+        let result;
+        try {
+            var teste = await this.sinistroModel.findOne({where: { id }});
+            result = await this.sinistroModel.update(payload, { 
+                where: { 
+                    id
+                }
+            });
+            return result;
+        } catch(error) {
+            throw(error);
+        }
     }
 
     async EditAccidentRegister(id: number, payload: any): Promise<boolean> {

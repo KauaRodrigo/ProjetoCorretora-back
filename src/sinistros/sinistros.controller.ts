@@ -53,14 +53,19 @@ export class SinistrosController {
     }
 
     @Post('editar/:id')
-    async editAccidentRegister(@Body() payload: any, @Param('id') id: number): Promise<boolean> {
-        return this.sinistroService.editAccidentRegister(id, payload);
+    async editarDadosSinistro(@Body() payload:any, @Param('id') id:number): Promise<boolean> {
+        return this.sinistroService.editarDadosSinistro(id, payload);
     }
 
     @Post('excluir/:id')
-    async excludeAccidentRegister(@Param('id') id: number): Promise<boolean> {
-        return this.sinistroService.excludeAccidentRegister(id);
+    async excluirSinitro(@Param('id') id:number): Promise<any> {
+        return this.sinistroService.excluirSinitro(id);
     }
+
+    /*@Post('deletar/:id')
+    async deleteAccidentRegister(@Param('id') id: number): Promise<boolean> {
+        return this.sinistroService.deleteAccidentRegister(id);
+    }*/
 
     @Post('atualizar/:id')
     async updateStatusRegister(@Body() payload: { status: string, descricao: string }, @Param('id') id: number, @User() user: any): Promise<boolean> {
