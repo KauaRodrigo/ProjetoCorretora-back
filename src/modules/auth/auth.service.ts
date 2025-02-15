@@ -7,6 +7,7 @@ import { User } from 'src/database/models/user.model';
 import { UsersService } from 'src/modules/users/users.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto'; 
 
 @Injectable()
 export class AuthService {

@@ -20,4 +20,10 @@ export class SeguradoraService {
         })
     }
 
+    async cadastrarSeguradora(oDados) {
+        return this.seguradoraModel.create({
+            nome: oDados.sNome
+        });
+    }
+
 }
