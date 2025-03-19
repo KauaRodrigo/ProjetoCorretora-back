@@ -2,7 +2,6 @@ import {AllowNull, BelongsTo, Column, DataType, ForeignKey, Model, NotNull, Tabl
 import { StatusSinistro } from "../../common/enums/statusSinistro";
 import { TipoSinistro } from "../../common/enums/tipoSinistros"
 import Cliente from "./clientes.model";
-import Adress from "./adress.model";
 
 @Table({
     tableName: 'sinistros',
@@ -60,17 +59,8 @@ export default class Sinistro extends Model {
     @Column({
         field: 'clienteId'
     } )
-    clienteId: number
-
-    @ForeignKey(() => Adress)
-    @Column({
-        field: 'enderecoId'
-    })
-    enderecoId: number
+    clienteId: number    
 
     @BelongsTo(() => Cliente)
-    cliente: Cliente
-
-    @BelongsTo(() => Adress)
-    endereco: Cliente
+    cliente: Cliente    
 }

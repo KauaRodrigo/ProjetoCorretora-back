@@ -6,11 +6,11 @@ import Cliente from 'src/database/models/clientes.model';
 import LastRecords from 'src/common/dtos/lastRecords.dto';
 import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import { format } from 'date-fns';
-import Adress from "../../database/models/adress.model";
 import Comments from "../../database/models/comments.model";
 import Seguradora from "../../database/models/seguradora.model";
 import { User } from 'src/database/models/user.model';
-import { exit } from 'process';
+import * as fs from 'fs';
+import { join, extname } from 'path';
 
 type ResumoCard = {
     aberto: number,
@@ -23,8 +23,7 @@ export class SinistrosService {
 
     constructor(
         @InjectModel(Sinistro) readonly sinistroModel: typeof Sinistro,
-        @InjectModel(Cliente) readonly clienteModel: typeof Cliente,
-        @InjectModel(Adress) readonly enderecoModel: typeof Adress,
+        @InjectModel(Cliente) readonly clienteModel: typeof Cliente,        
         @InjectModel(Comments) readonly commentsModel: typeof Comments,
         @InjectModel(Seguradora) readonly  seguradoraModel: typeof Seguradora,
         @InjectModel(User) readonly userModel: typeof User,
@@ -53,7 +52,7 @@ export class SinistrosService {
             
             const newFotos = fotos[0].map((foto: any) => {
                 return foto.conteudo.toString()
-            })            
+            })                        
 
             return {
                 numeroApolice: result.numeroApolice,
@@ -64,7 +63,10 @@ export class SinistrosService {
                 evento: result.evento,
                 terceiro: result.terceiro,
                 nome: result.cliente.name,
+                clienteId: result.cliente.id,
+                nomeTerceiro: result.nomeTerceiro,
                 seguradora: result.cliente.seguradora.nome,
+                seguradoraId: result.cliente.seguradora.id,
                 fotos: newFotos,
                 dataOcorrencia: format(result.dataOcorrencia, 'yyyy-MM-dd')
             };
@@ -78,13 +80,12 @@ export class SinistrosService {
 
     async getAccidentsByFilters(filters: any): Promise<{ rows: any[], count: number }> {
         let {
-            dataFilter = '',
-            searchFilter = { tipo: '', valor: ''},
-            policyNumberFilter = '',
-            companyFilter = '',
-            statusFilter = '',
-            typeFilter = '',
-            thirdFilter = '',
+            data = '',
+            searchFilter = { coluna: '', valor: ''},
+            apolice = '',
+            seguradora = '',
+            status = '',
+            tipo = '',            
             page = 1,
             perPage = 5,
             orderBy = "numeroApolice",
@@ -93,26 +94,24 @@ export class SinistrosService {
 
         let searchFilterValue = ''
         
-        if(searchFilter.value != '' && searchFilter.type != '') {
+        if(searchFilter.valor != '' && searchFilter.coluna != '') {
             if(searchFilter.type == "name") {
-                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
+                searchFilterValue = `AND row.${searchFilter.coluna} ILIKE '%${searchFilter.valor}%'`
             } else {
-                searchFilterValue = `AND row.${searchFilter.type} ILIKE '%${searchFilter.value}%'`
+                searchFilterValue = `AND row.${searchFilter.coluna} ILIKE '%${searchFilter.valor}%'`
             }
         }
 
-        if(dataFilter.init && dataFilter.end) dataFilter = `AND row."dataOcorrencia" BETWEEN '${dataFilter.init}' AND ('${dataFilter.end}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
-        else dataFilter = '';
+        if(data.inici && data.final) data = `AND row."dataOcorrencia" BETWEEN '${data.inicial}' AND ('${data.final}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
+        else data = '';
 
-        if(policyNumberFilter) policyNumberFilter = `AND row."numeroApolice" = ${policyNumberFilter}`;
+        if(apolice) apolice = `AND row."numeroApolice" = ${apolice}`;
 
-        if(companyFilter) companyFilter = `AND row.seguradora = '${companyFilter}'`;
+        if(seguradora) seguradora = `AND row.seguradora = '${seguradora}'`;        
 
-        if(thirdFilter) thirdFilter = `AND row.terceiro = '${thirdFilter}'`;
+        if(tipo) tipo = `AND row.tipo = '${tipo}'`;
 
-        if(typeFilter) typeFilter = `AND row.tipo = '${typeFilter}'`;
-
-        if(statusFilter) statusFilter = `AND row.status = '${statusFilter}'`;
+        if(status) status = `AND row.status = '${status}'`;
 
         let sql = `
         SELECT row.*
@@ -136,17 +135,16 @@ export class SinistrosService {
                  WHERE s."deletedAt" is null
                ) as row
            WHERE 1 = 1             
-                 ${companyFilter}
-                 ${dataFilter}
-                 ${policyNumberFilter}
-                 ${statusFilter}
-                 ${typeFilter}
-                 ${thirdFilter}
+                 ${seguradora}
+                 ${data}
+                 ${apolice}
+                 ${status}
+                 ${tipo}                 
                  ${searchFilterValue}
         ORDER BY "${orderBy}" ${order} 
         `;        
 
-        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT})
+        const query: any = await this.sinistroModel.sequelize.query(sql + `LIMIT ${perPage} OFFSET ${page} * ${perPage}`, { type: QueryTypes.SELECT, logging: true})
         const count: any = await this.sinistroModel.sequelize.query(`SELECT COUNT(*) FROM (${sql})`, { type: QueryTypes.SELECT })                
 
         const rows = query.map((row) => ({
@@ -192,12 +190,7 @@ export class SinistrosService {
         let transaction: Transaction = await this.sequelize.transaction();        
         
         try {            
-            const seguradora: any = await this.seguradoraModel.findOrCreate({ where: { nome: `${payload.seguradora}` },  defaults: { nome: payload.seguradora }, returning: true})[0];
-            
-            const cliente: any = await this.clienteModel.findOrCreate({ where: { name: `${payload.nome}` }, defaults: { name: payload.nome, seguradoraId: seguradora.id }, returning: true})[0];
-
-            payload.clienteId = cliente.id;
-            payload.status = "ABERTO";
+            payload.status = "ABERTO";            
  
             const newRegister: Sinistro = await this.sinistroModel.create(payload, { transaction });            
             
@@ -237,8 +230,7 @@ export class SinistrosService {
         const result = await this.commentsModel.create({
             conteudo: content,
             userId: userId,
-            sinistroId: id
-            //https://bit.ly/4fg7dWH
+            sinistroId: id            
         })
         return !!result;
     }
@@ -322,7 +314,7 @@ export class SinistrosService {
     async cancelarSinistro(iId: number): Promise<boolean> {
         const result = await this.sinistroModel.update({
             status: 'CANCELADO'
-        }, { where: { iId }})
+        }, { where: { id: iId }})
 
         return !!result;
     }
@@ -462,6 +454,86 @@ export class SinistrosService {
                 }
             }
         });
+    }
+
+    async exportarSinistrosCSV(oFiltros): Promise<any> {        
+        let {
+            data = '',
+            searchFilter = { coluna: '', valor: ''},
+            apolice = '',
+            seguradora = '',
+            status = '',
+            tipo = '',            
+        } = oFiltros;
+
+        let searchFilterValue = ''
+        
+        if(searchFilter.valor != '' && searchFilter.coluna != '') {
+            if(searchFilter.type == "name") {
+                searchFilterValue = `AND row.${searchFilter.coluna} ILIKE '%${searchFilter.valor}%'`
+            } else {
+                searchFilterValue = `AND row.${searchFilter.coluna} ILIKE '%${searchFilter.valor}%'`
+            }
+        }
+
+        if(data.inicial && data.final) data = `AND row."dataOcorrencia" BETWEEN '${data.inicial}' AND ('${data.final}'::DATE) + '23 hours 59 minutes'::INTERVAL`;
+        else data = '';
+
+        if(apolice) apolice = `AND row."numeroApolice" = ${apolice}`;
+
+        if(apolice) apolice = `AND row.seguradora = '${apolice}'`;        
+
+        if(tipo) tipo = `AND row.tipo = '${tipo}'`;
+
+        if(status) status = `AND row.status = '${status}'`;
+
+        let sql = `
+            SELECT row.*
+            FROM (SELECT s.id,
+                        s."numeroApolice",
+                        s."numeroSinistro",
+                        s.evento,               
+                        s.tipo,
+                        s."createdAt"::DATE,
+                        s.status,
+                        CASE 
+                            WHEN s.terceiro = true THEN 'Sim'
+                            ELSE 'Não'
+                         END as terceiro,
+                        c.name as "cliente",
+                        seg.nome as "seguradora",
+                        s.placa,
+                        s."dataOcorrencia"
+                    FROM sinistros s
+                    JOIN clientes c 
+                        ON c.id = s."clienteId"
+                    JOIN seguradora seg 
+                        on seg.id = c."seguradoraId"                 
+                    WHERE s."deletedAt" is null
+                ) as row
+            WHERE 1 = 1             
+                    ${apolice}
+                    ${data}
+                    ${apolice}
+                    ${status}
+                    ${tipo}                    
+                    ${searchFilterValue}             
+        `;        
+
+        const oDados: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.SELECT});           
+
+        if(oDados.length === 0) {
+            throw('Nenhum registro encontrado');
+        }
+
+        const file = join(__dirname, 'sinistros.csv');        
+
+        const headers = Object.keys(oDados[0]).join(';') + '\n';
+        const body = oDados.map((oDado) => Object.values(oDado).join(';')).join('\n');
+
+        fs.writeFileSync(file, headers + body, 'utf-8');
+
+        return file;
     }
 
 }

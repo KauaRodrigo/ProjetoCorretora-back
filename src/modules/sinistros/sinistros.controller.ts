@@ -5,6 +5,7 @@ import {
     Param,
     Post,
     Query,    
+    Res,    
     UploadedFiles,
     UseGuards,    
     UseInterceptors
@@ -15,8 +16,10 @@ import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import LastRecords from 'src/common/dtos/lastRecords.dto';
 import {User} from "../../common/decorators/user.decorator";
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import * as fs from 'fs'; 
 
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 @Controller('sinistros')
 export class SinistrosController {
 
@@ -77,6 +80,25 @@ export class SinistrosController {
         return retorno;        
     }
 
+    @Post('exportar')
+    async exportarSinistrosCSV(@Body() oFiltros, @Res() res: Response): Promise<any> {
+        console.log(oFiltros)
+        const file = await this.sinistroService.exportarSinistrosCSV(oFiltros)
+
+        try {                  
+            res.download(file, 'dados_'+ new Date().getTime() +'.csv', (err) => {
+              if (err) {
+                console.error('Erro ao baixar CSV:', err);
+                res.status(500).send('Erro ao gerar CSV');
+              } else {
+                fs.unlinkSync(file);
+              }
+            });
+          } catch (error) {
+            res.status(500).send(error.message);
+          }        
+    }
+
     @Get('/:id')
     async getAccidentSingle(@Param('id') id: number): Promise<any> {
         const retorno = await this.sinistroService.getAccidentSingle(id);    
@@ -93,6 +115,5 @@ export class SinistrosController {
     async excluirComentario(@Param('id') idComentario): Promise<any> {
         const retorno = await this.sinistroService.excluirComentario(idComentario);
         return retorno
-    }
-
+    }    
 }

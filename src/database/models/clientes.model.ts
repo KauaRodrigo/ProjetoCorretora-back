@@ -3,7 +3,8 @@ import Sinistro from "./sinistro.model";
 import Seguradora from "./seguradora.model";
 
 @Table({    
-    tableName: 'clientes'
+    tableName: 'clientes',
+    paranoid: true
 })
 export default class Cliente extends Model {
     @Column
@@ -23,6 +24,9 @@ export default class Cliente extends Model {
 
     @Column
     dataNascimento: Date
+
+    @Column
+    status: number
 
     @BelongsTo(() => Seguradora)
     seguradora: Seguradora
