@@ -45,7 +45,7 @@ export class EmailService {
       html: `
         <h1>Validação de Email</h1>
         <p>Por favor, clique no link abaixo para validar seu email:</p>
-        <a href="${sAppUrl}/passwordReset/${sToken}">
+        <a href="${sAppUrl}/recuperarsenha/${sToken}">
           Validar Email
         </a>
         <p>Este link expira em 1 hora.</p>

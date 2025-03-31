@@ -14,7 +14,7 @@ export class ClientesService {
     ) {}
 
     /**
-     * Busca os cliente pelo valor passado no campo nome;
+     * Busca os cliente pelo id;
      * 
      * @param { number } iId
      * @return { Cliente[]}
@@ -26,6 +26,7 @@ export class ClientesService {
                    clientes.cpf,
                    clientes.telefone,
                    clientes."dataNascimento",
+                   seguradora.id AS "seguradoraId",
                    seguradora.nome AS seguradora
               FROM clientes
          LEFT JOIN seguradora
@@ -38,14 +39,7 @@ export class ClientesService {
         }))[0];     
 
         return oResultado;
-        return this.clienteModel.findOne({
-            where: {
-                id: iId
-            },
-            include: [
-                this.seguradoraModel
-            ]
-        })
+        
     }
 
     async getClientes(oFiltros: any): Promise<any> {        
@@ -92,16 +86,7 @@ export class ClientesService {
         };
     }
 
-    async cadastrarCliente(oDados): Promise<boolean> {
-        const iSeguradora = await this.seguradoraModel.findOne({
-            where: {
-                nome: oDados.seguradora
-            }
-        });
-
-        oDados.seguradoraId = iSeguradora.id;
-        delete oDados.seguradora;
-
+    async cadastrarCliente(oDados): Promise<boolean> {                                
         const cliente: any = await this.clienteModel.create(oDados);
 
         return !!cliente;
@@ -115,7 +100,8 @@ export class ClientesService {
                 'name',
                 'dataNascimento',
                 'cpf',
-                'telefone'
+                'telefone',
+                'seguradoraId'
             ],
             paranoid: true,
             where: {
@@ -140,12 +126,25 @@ export class ClientesService {
         });
     }
 
+    async buscarCliente(oDados: any): Promise<any> {
+        const oCliente: any = await this.clienteModel.findOne({
+            where: {                
+                name: {
+                    [Op.like]: `%${oDados.sNome}%`
+                }
+            }
+        });
+
+        return oCliente;
+    }
+
     tratarDadosCliente(oDados) {
         return {
             name: oDados.name,
             dataNascimento: oDados.dataNascimento,
             cpf: oDados.cpf,
-            telefone: oDados.telefone
+            telefone: oDados.telefone,
+            seguradoraId: oDados.seguradora
         }
     }
 }

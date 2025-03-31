@@ -24,8 +24,7 @@ export default class Sinistro extends Model {
 
     @Column({
         type: DataType.STRING,
-        field: 'nome_terceiro',
-        allowNull: false
+        field: 'nome_terceiro',        
     })
     nomeTerceiro: string
 

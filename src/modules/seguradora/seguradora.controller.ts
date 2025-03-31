@@ -1,6 +1,8 @@
+import { AuthGuard } from 'src/common/guards/auth.guard';
 import { SeguradoraService } from './seguradora.service';
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 
+@UseGuards(AuthGuard)
 @Controller('seguradoras')
 export class SeguradoraController {
 

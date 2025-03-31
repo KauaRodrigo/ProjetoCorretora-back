@@ -6,6 +6,7 @@ import {
     Post,
     Query,    
     Res,    
+    UploadedFile,    
     UploadedFiles,
     UseGuards,    
     UseInterceptors
@@ -15,11 +16,11 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { TipoSinistro } from 'src/common/enums/tipoSinistros';
 import LastRecords from 'src/common/dtos/lastRecords.dto';
 import {User} from "../../common/decorators/user.decorator";
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as fs from 'fs'; 
 
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @Controller('sinistros')
 export class SinistrosController {
 
@@ -97,7 +98,7 @@ export class SinistrosController {
           } catch (error) {
             res.status(500).send(error.message);
           }        
-    }
+    }    
 
     @Get('/:id')
     async getAccidentSingle(@Param('id') id: number): Promise<any> {

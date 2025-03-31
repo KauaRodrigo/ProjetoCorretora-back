@@ -319,33 +319,20 @@ export class SinistrosService {
         return !!result;
     }
 
-    /*async deleteAccidentRegister (id:number): Promise<boolean>{
-        const sql = `
-                        DELETE FROM sinistros WHERE id=${id};
-                    `;
-        
-        try{
-            const query: any = await this.sinistroModel.sequelize.query(sql, { type: QueryTypes.DELETE });
-            return true;
-        }catch{
-            return false;
+    async excluirSinitro(id: number): Promise<any> {    
+        let result;
+        try {
+            var teste = await this.sinistroModel.findOne({where: { id }});
+            result = await this.sinistroModel.destroy({ 
+                where: { 
+                    id
+                }
+            });
+            return result;
+        } catch(error) {
+            throw(error);
         }
-    }*/
-
-        async excluirSinitro(id: number): Promise<any> {    
-            let result;
-            try {
-                var teste = await this.sinistroModel.findOne({where: { id }});
-                result = await this.sinistroModel.destroy({ 
-                    where: { 
-                        id
-                    }
-                });
-                return result;
-            } catch(error) {
-                throw(error);
-            }
-        }
+    }
 
     async editarDadosSinistro(id: number, payload:any): Promise<boolean> {    
         let result;
@@ -489,28 +476,27 @@ export class SinistrosService {
 
         let sql = `
             SELECT row.*
-            FROM (SELECT s.id,
-                        s."numeroApolice",
-                        s."numeroSinistro",
-                        s.evento,               
-                        s.tipo,
-                        s."createdAt"::DATE,
-                        s.status,
-                        CASE 
-                            WHEN s.terceiro = true THEN 'Sim'
-                            ELSE 'Não'
-                         END as terceiro,
-                        c.name as "cliente",
-                        seg.nome as "seguradora",
-                        s.placa,
-                        s."dataOcorrencia"
+            FROM (SELECT s."numeroApolice",
+                         s."numeroSinistro",
+                         s.evento,               
+                         s.tipo,                        
+                         s.status,
+                         CASE 
+                             WHEN s.terceiro = true THEN 'Sim'
+                             ELSE 'Não'
+                          END as terceiro,
+                         c.name as "cliente",
+                         seg.nome as "seguradora",
+                         s.placa,
+                         s."createdAt"::DATE,
+                         s."dataOcorrencia"
                     FROM sinistros s
                     JOIN clientes c 
-                        ON c.id = s."clienteId"
+                      ON c.id = s."clienteId"
                     JOIN seguradora seg 
-                        on seg.id = c."seguradoraId"                 
-                    WHERE s."deletedAt" is null
-                ) as row
+                      ON seg.id = c."seguradoraId"                 
+                   WHERE s."deletedAt" is null
+                ) AS row
             WHERE 1 = 1             
                     ${apolice}
                     ${data}
@@ -528,12 +514,13 @@ export class SinistrosService {
 
         const file = join(__dirname, 'sinistros.csv');        
 
-        const headers = Object.keys(oDados[0]).join(';') + '\n';
+        const headers = 'Número Apólice;Número Sinistro;Evento;Tipo;Status;Terceiro;Cliente;Seguradora;Placa;Data do Registro;Data da Ocorrência\n';    
+
         const body = oDados.map((oDado) => Object.values(oDado).join(';')).join('\n');
 
         fs.writeFileSync(file, headers + body, 'utf-8');
 
         return file;
-    }
+    }    
 
 }

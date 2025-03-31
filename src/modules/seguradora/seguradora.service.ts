@@ -19,8 +19,7 @@ export class SeguradoraService {
                    seguradora.nome,
                    seguradora.status
               FROM seguradora
-             WHERE seguradora."deletedAt" IS NULL
-               AND seguradora.status = 1
+             WHERE seguradora."deletedAt" IS NULL               
         `;
 
         if(oFiltros.sNome) {
